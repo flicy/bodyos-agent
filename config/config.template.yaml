@@ -1,0 +1,41 @@
+# FitCrew config.yaml 模板
+# install.sh 会把占位符替换后写入 profile 的 config.yaml。
+# ⚠️ 这是 YAML，手工编辑务必保证语法正确——写坏会导致 Hermes 静默回退默认配置。
+
+model:
+  provider: custom
+  default: __MODEL__              # 例如 deepseek-v4-flash
+  base_url: __BASE_URL__          # 例如 https://token.sensenova.cn/v1
+  api_key: __API_KEY__            # 推理 API key（建议改用 ${ENV_VAR} 引用）
+
+terminal:
+  backend: local
+  cwd: .
+  timeout: 180
+
+platforms:
+  feishu:
+    extra:
+      default_group_policy: open
+      # 每加入一个群，install/add-group 会在这里追加一条规则；也可由 Moticlaw 正常流程写入。
+      group_rules: {}
+        # oc_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx:
+        #   policy: open
+        #   require_mention: false   # 打卡群建议 false（主动参与）；大群可 true（仅 @ 时回应）
+
+compression:
+  enabled: true
+  threshold: 0.5
+  target_ratio: 0.2
+  protect_last_n: 20
+  protect_first_n: 3
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+
+group_sessions_per_user: true
+
+agent:
+  max_turns: 90
+  reasoning_effort: medium
