@@ -1,6 +1,8 @@
-# FitCrew · AI 健身管理专家
+# Body OS · AI 健身管理专家
 
-> 🌐 **产品介绍页（在线）**：https://flicy.github.io/cola-pages/fitcrew/
+> 🌐 **产品介绍页（在线）**：https://flicy.github.io/cola-pages/bodyos/
+> 📝 **提交需求 / 成为共创者**：[需求反馈问卷](https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f)（每周 review，被采纳开放 GitHub 共创权限）
+> 📋 **版本更新**：见 [CHANGELOG.md](./CHANGELOG.md)
 
 一个**可加载的飞书 AI 健身管理专家 Agent 安装包**。一次安装，得到一个能管理多个健康群、并对每个人做私密个性化健康管理的 AI 助手。
 
@@ -17,7 +19,7 @@
 ## 目录结构
 
 ```
-fitcrew-agent/
+bodyos-agent/
 ├── install.sh                 # 一键安装到新 Hermes profile
 ├── agent/                     # Agent 身份文件（装入 profile）
 │   ├── AGENTS.md              # 角色与职责
@@ -51,23 +53,23 @@ fitcrew-agent/
 ## 快速开始
 
 ```bash
-cd fitcrew-agent
+cd bodyos-agent
 
 # 1) 安装（参数可用环境变量传，否则交互询问）
-FITCREW_PROFILE=fitcrew \
+BODYOS_PROFILE=bodyos \
 FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_HOME_CHANNEL=oc_xxx \
-FITCREW_MODEL=deepseek-v4-flash \
-FITCREW_BASE_URL=https://token.sensenova.cn/v1 \
-FITCREW_API_KEY=sk-xxx \
+BODYOS_MODEL=deepseek-v4-flash \
+BODYOS_BASE_URL=https://token.sensenova.cn/v1 \
+BODYOS_API_KEY=sk-xxx \
 ./install.sh
 
 # 2) 在飞书把机器人拉进健康群
 #    「新群引导巡检」每 10 分钟自动发现新群、建档、发引导消息
 
 # 3) 给某个群开通每日打卡/复盘/周报节奏
-~/.hermes/profiles/fitcrew/scripts/add-group.sh fitcrew oc_xxxxxxxx 健康搭子打卡群 buddy
+~/.hermes/profiles/bodyos/scripts/add-group.sh bodyos oc_xxxxxxxx 健康搭子打卡群 buddy
 #    theme: system(系统健身) | buddy(搭子打卡) | wellness(轻量养生)
-~/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main --profile fitcrew gateway restart
+~/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main --profile bodyos gateway restart
 ```
 
 ## 安装做了什么
