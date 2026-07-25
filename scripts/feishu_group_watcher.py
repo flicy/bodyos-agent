@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""FitCrew @提及巡检脚本（可移植版）。
+"""Body OS @提及巡检脚本（可移植版）。
 
 扫描所管理群中新出现的 @机器人 提及，输出 JSONL（每行一条），无新提及则静默。
 管理的群从 memories/groups/ 目录自动推导（每个 <chat_id>_<名字>.md 即一个群），
 因此给一个新群建档后，巡检会自动覆盖它，无需改代码。
 
 可配置（环境变量）：
-  FITCREW_PROFILE_DIR  profile 目录（默认：脚本所在目录的上一级）
-  FITCREW_BOT_NAME     机器人在飞书的名字（默认 Moticlaw飞书助手）
-  FITCREW_LARK_CLI     lark-cli 路径（默认从 PATH 找 lark-cli）
+  BODYOS_PROFILE_DIR  profile 目录（默认：脚本所在目录的上一级）
+  BODYOS_BOT_NAME     机器人在飞书的名字（默认 Moticlaw飞书助手）
+  BODYOS_LARK_CLI     lark-cli 路径（默认从 PATH 找 lark-cli）
 """
 import json, subprocess, os, sys, glob, re
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROFILE_DIR = os.environ.get("FITCREW_PROFILE_DIR") or os.path.dirname(SCRIPT_DIR)
+PROFILE_DIR = os.environ.get("BODYOS_PROFILE_DIR") or os.path.dirname(SCRIPT_DIR)
 GROUPS_DIR = os.path.join(PROFILE_DIR, "memories", "groups")
 STATE_FILE = os.path.join(SCRIPT_DIR, ".feishu_watcher_state.json")
-BOT_NAME = os.environ.get("FITCREW_BOT_NAME", "Moticlaw飞书助手")
-LARK_CLI = os.environ.get("FITCREW_LARK_CLI", "lark-cli")
+BOT_NAME = os.environ.get("BODYOS_BOT_NAME", "Moticlaw飞书助手")
+LARK_CLI = os.environ.get("BODYOS_LARK_CLI", "lark-cli")
 
 
 def load_groups():
