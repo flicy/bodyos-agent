@@ -1,10 +1,10 @@
 #!/bin/bash
-# FitCrew · AI 健身管理专家 —— 一键安装到一个新的 Hermes profile。
+# Body OS · AI 健身管理专家 —— 一键安装到一个新的 Hermes profile。
 #
 # 用法（推荐用环境变量传参，避免交互）：
-#   FITCREW_PROFILE=fitcrew \
+#   BODYOS_PROFILE=bodyos \
 #   FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_HOME_CHANNEL=oc_xxx \
-#   FITCREW_MODEL=deepseek-v4-flash FITCREW_BASE_URL=https://token.sensenova.cn/v1 FITCREW_API_KEY=sk-xxx \
+#   BODYOS_MODEL=deepseek-v4-flash BODYOS_BASE_URL=https://token.sensenova.cn/v1 BODYOS_API_KEY=sk-xxx \
 #   ./install.sh
 #
 # 未提供的参数会交互式询问。
@@ -20,21 +20,21 @@ ask() { # ask VARNAME prompt
 }
 
 echo "═══════════════════════════════════════════════"
-echo "  FitCrew · AI 健身管理专家 安装程序"
+echo "  Body OS · AI 健身管理专家 安装程序"
 echo "═══════════════════════════════════════════════"
 
-ask FITCREW_PROFILE      "Profile 名（默认 fitcrew）: "
-FITCREW_PROFILE="${FITCREW_PROFILE:-fitcrew}"
+ask BODYOS_PROFILE      "Profile 名（默认 bodyos）: "
+BODYOS_PROFILE="${BODYOS_PROFILE:-bodyos}"
 ask FEISHU_APP_ID        "飞书 App ID: "
 ask FEISHU_APP_SECRET    "飞书 App Secret: "
 ask FEISHU_HOME_CHANNEL  "管理单聊 chat_id (FEISHU_HOME_CHANNEL): "
-ask FITCREW_MODEL        "推理模型（默认 deepseek-v4-flash）: "
-FITCREW_MODEL="${FITCREW_MODEL:-deepseek-v4-flash}"
-ask FITCREW_BASE_URL     "推理 base_url（默认 https://token.sensenova.cn/v1）: "
-FITCREW_BASE_URL="${FITCREW_BASE_URL:-https://token.sensenova.cn/v1}"
-ask FITCREW_API_KEY      "推理 API key: "
+ask BODYOS_MODEL        "推理模型（默认 deepseek-v4-flash）: "
+BODYOS_MODEL="${BODYOS_MODEL:-deepseek-v4-flash}"
+ask BODYOS_BASE_URL     "推理 base_url（默认 https://token.sensenova.cn/v1）: "
+BODYOS_BASE_URL="${BODYOS_BASE_URL:-https://token.sensenova.cn/v1}"
+ask BODYOS_API_KEY      "推理 API key: "
 
-PROFILE_DIR="$HERMES_ROOT/profiles/$FITCREW_PROFILE"
+PROFILE_DIR="$HERMES_ROOT/profiles/$BODYOS_PROFILE"
 echo "→ 目标 profile: $PROFILE_DIR"
 
 # ① 建 profile 目录（若不存在）
@@ -46,9 +46,9 @@ cp "$HERE/agent/AGENTS.md" "$HERE/agent/SOUL.md" "$HERE/agent/HERMES.md" "$PROFI
 
 # ③ 渲染 config.yaml
 echo "→ 渲染 config.yaml"
-sed -e "s#__MODEL__#$FITCREW_MODEL#g" \
-    -e "s#__BASE_URL__#$FITCREW_BASE_URL#g" \
-    -e "s#__API_KEY__#$FITCREW_API_KEY#g" \
+sed -e "s#__MODEL__#$BODYOS_MODEL#g" \
+    -e "s#__BASE_URL__#$BODYOS_BASE_URL#g" \
+    -e "s#__API_KEY__#$BODYOS_API_KEY#g" \
     "$HERE/config/config.template.yaml" > "$PROFILE_DIR/config.yaml"
 
 # ④ 渲染 .env
@@ -57,8 +57,8 @@ sed -e "s#__PROFILE_DIR__#$PROFILE_DIR#g" \
     -e "s#__FEISHU_APP_ID__#$FEISHU_APP_ID#g" \
     -e "s#__FEISHU_APP_SECRET__#$FEISHU_APP_SECRET#g" \
     -e "s#__FEISHU_HOME_CHANNEL__#$FEISHU_HOME_CHANNEL#g" \
-    -e "s#__API_KEY__#$FITCREW_API_KEY#g" \
-    -e "s#__BASE_URL__#$FITCREW_BASE_URL#g" \
+    -e "s#__API_KEY__#$BODYOS_API_KEY#g" \
+    -e "s#__BASE_URL__#$BODYOS_BASE_URL#g" \
     "$HERE/config/env.template" > "$PROFILE_DIR/.env"
 chmod 600 "$PROFILE_DIR/.env"
 
@@ -78,9 +78,9 @@ echo "→ 校验 config.yaml YAML 合法性"
 
 # ⑦ 加载通用定时任务（新群引导巡检 / @提及巡检 / 个人周度私聊小结）
 echo "→ 加载通用定时任务"
-FITCREW_PROFILE="$FITCREW_PROFILE" PROFILE_DIR="$PROFILE_DIR" HERE="$HERE" "$HERMES_PY" - <<'PY'
+BODYOS_PROFILE="$BODYOS_PROFILE" PROFILE_DIR="$PROFILE_DIR" HERE="$HERE" "$HERMES_PY" - <<'PY'
 import json, os, subprocess
-profile = os.environ["FITCREW_PROFILE"]
+profile = os.environ["BODYOS_PROFILE"]
 profile_dir = os.environ["PROFILE_DIR"]
 here = os.environ["HERE"]
 hermes_py = os.environ.get("HERMES_PY", os.path.expanduser("~/.hermes/hermes-agent/venv/bin/python"))
@@ -101,19 +101,19 @@ PY
 
 # ⑧ 安装并启动 gateway 服务
 echo "→ 安装并启动 gateway 服务"
-"$HERMES_PY" -m hermes_cli.main --profile "$FITCREW_PROFILE" gateway install >/dev/null 2>&1 || true
-"$HERMES_PY" -m hermes_cli.main --profile "$FITCREW_PROFILE" gateway restart
+"$HERMES_PY" -m hermes_cli.main --profile "$BODYOS_PROFILE" gateway install >/dev/null 2>&1 || true
+"$HERMES_PY" -m hermes_cli.main --profile "$BODYOS_PROFILE" gateway restart
 
 echo ""
 echo "═══════════════════════════════════════════════"
-echo "  ✅ FitCrew 安装完成！"
+echo "  ✅ Body OS 安装完成！"
 echo "═══════════════════════════════════════════════"
 echo ""
 echo "下一步："
 echo "  1. 在飞书把这个机器人拉进你的健康群。"
 echo "  2. 「新群引导巡检」每 10 分钟会自动发现新群、建档并发引导消息。"
 echo "  3. 给某个群开通每日打卡/复盘/周报节奏："
-echo "       $PROFILE_DIR/scripts/add-group.sh $FITCREW_PROFILE <chat_id> <群名> <system|buddy|wellness>"
+echo "       $PROFILE_DIR/scripts/add-group.sh $BODYOS_PROFILE <chat_id> <群名> <system|buddy|wellness>"
 echo "     然后重启 gateway 生效。"
 echo "  4. 看日志： tail -f $PROFILE_DIR/logs/gateway.log"
 echo ""
