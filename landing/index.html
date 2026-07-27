@@ -146,6 +146,16 @@
   .chip{font-size:13px;font-weight:700;padding:7px 15px;border-radius:999px;background:var(--mint);border:1.5px solid #DCEAD0;color:var(--ink-soft)}
   .b-l1 .demo{margin-top:28px;border-radius:20px;padding:18px 20px;background:linear-gradient(135deg,#F2F8EC,#EAF4E2);border:1.5px solid #DDEBD0;font-size:14px;color:var(--ink-soft)}
   .b-l1 .demo b{color:var(--green-deep)}
+  /* L1 群运营 · 可切换 tab */
+  .l1-tabs{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .l1-tab{font-family:inherit;font-size:13px;font-weight:700;padding:8px 16px;border-radius:999px;border:1.5px solid #DCE8D0;background:#fff;color:var(--ink-soft);cursor:pointer;transition:all .22s cubic-bezier(.2,.7,.2,1)}
+  .l1-tab:hover{border-color:var(--green);color:var(--green-deep);transform:translateY(-1px)}
+  .l1-tab.on{background:linear-gradient(135deg,#35C67E,#1B9459);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(47,182,115,.3)}
+  .l1-panel{display:none;margin-top:20px}
+  .l1-panel.on{display:block;animation:l1fade .38s cubic-bezier(.2,.7,.2,1)}
+  @keyframes l1fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .l1-panel .p-desc{font-size:14px;color:var(--ink-soft);margin-bottom:14px}
+  .b-l1 .l1-panel .demo{margin-top:0}
   @media(max-width:880px){.b-l1,.b-l2,.b-l3{grid-column:span 12;grid-row:auto}}
 
   /* ---------- 工作原理 stepper ---------- */
@@ -455,9 +465,31 @@
         <span class="badge">L1 · 群运营</span>
         <div class="ico"><svg width="30" height="30" viewBox="0 0 64 64"><use href="#leafs" fill="#2FB673"/></svg></div>
         <h3>把一群人聚在一起坚持</h3>
-        <p>每个群有独立人设和节奏，低打扰、可持续，重在同伴互助。被 @ 时结合上下文专业应答。</p>
-        <div class="chips"><span class="chip">每日打卡</span><span class="chip">晚间复盘 / 互赞</span><span class="chip">每周合作周报</span><span class="chip">@ 即答</span></div>
-        <div class="demo">「晚上 8 点半，30 秒小复盘见～」——<b>今晚 20:30</b>，FitCrew 会准时在群里等你。</div>
+        <p>每个群有独立人设和节奏，低打扰、可持续，重在同伴互助。</p>
+        <div class="l1-tabs" role="tablist" aria-label="群运营能力">
+          <button class="l1-tab on" data-l1="0" type="button">每日打卡</button>
+          <button class="l1-tab" data-l1="1" type="button">晚间复盘 / 互赞</button>
+          <button class="l1-tab" data-l1="2" type="button">每周合作周报</button>
+          <button class="l1-tab" data-l1="3" type="button">@ 即答</button>
+        </div>
+        <div class="l1-panels">
+          <div class="l1-panel on">
+            <p class="p-desc">每天一个最小行动——走 8000 步、喝够水、拉伸 10 分钟，30 秒打卡，没负担。</p>
+            <div class="demo">「今日 8500 步，打卡 ✅」——FitCrew 帮你记下每一点坚持，<b>只完成、不完美</b>。</div>
+          </div>
+          <div class="l1-panel">
+            <p class="p-desc">晚上 8 点半，FitCrew 准时发起 30 秒小复盘，大家互相看见坚持、彼此点赞，气氛自然热起来。</p>
+            <div class="demo">「晚上 8 点半，30 秒小复盘见～」——<b>今晚 20:30</b>，FitCrew 会准时在群里等你。</div>
+          </div>
+          <div class="l1-panel">
+            <p class="p-desc">每周日自动生成全群合作周报：多少人坚持、谁有突破、下周小目标——让群体的坚持被看见。</p>
+            <div class="demo">「本周 12 位伙伴完成 5 天打卡 🎉」——群体的坚持，<b>一目了然</b>。</div>
+          </div>
+          <div class="l1-panel">
+            <p class="p-desc">群里 @ FitCrew 问任何健康问题，它结合上下文即时专业应答，不是套话。</p>
+            <div class="demo">「@FitCrew 膝盖不舒服能做深蹲吗？」——它会结合你的情况给出<b>专业建议</b>。</div>
+          </div>
+        </div>
       </div>
       <div class="tile b-l2 reveal">
         <span class="badge">L2 · 个人私管理</span>
@@ -728,6 +760,15 @@
   document.querySelectorAll('[data-close-fs]').forEach(b=>b.addEventListener('click', ()=>overlay.classList.remove('open')));
   overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.classList.remove('open'); });
   document.addEventListener('keydown', e=>{ if(e.key==='Escape') overlay.classList.remove('open'); });
+
+  // L1 群运营 tab 切换
+  const l1Tabs = document.querySelectorAll('.l1-tab');
+  const l1Panels = document.querySelectorAll('.l1-panel');
+  l1Tabs.forEach(tab=>tab.addEventListener('click', ()=>{
+    const idx = +tab.dataset.l1;
+    l1Tabs.forEach(t=>t.classList.toggle('on', t===tab));
+    l1Panels.forEach((p,i)=>p.classList.toggle('on', i===idx));
+  }));
 </script>
 </body>
 </html>
