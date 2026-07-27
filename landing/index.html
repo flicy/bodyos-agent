@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <script>document.documentElement.classList.add('js')</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Body OS · AI 健身管理专家 — 把健康坚持下去，交给你的 AI 健身搭子</title>
-<meta name="description" content="Body OS 是运行在飞书上的开源 AI 健身管理专家：管理多个健康群、每日打卡陪伴、对每个人做私密个性化的健康管理。提交需求成为共创者，或扫码加 Chris 飞书。">
+<title>FitCrew · AI 健身管理专家 — 不是 AI 客服，是你自己的 Body OS</title>
+<meta name="description" content="FitCrew（Fit健康+Crew伙伴）是运行在飞书上的开源 AI 健身管理专家。不是 AI 客服，是你自己的 Body OS：有你的记忆、你的偏好、专家知识库、你自己的健康数据库。提交需求或投稿知识，一起共创。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -260,6 +260,47 @@
   .close-x{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;background:#EFF3E8;display:grid;place-items:center;font-size:15px;color:var(--ink-soft);transition:background .2s}
   .close-x:hover{background:#E2EAD8}
 
+  /* ---------- 四支柱 ---------- */
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .pillar{background:var(--card);border:1.5px solid #EDF2E4;border-radius:28px;padding:32px 28px;box-shadow:var(--sh);transition:transform .25s,box-shadow .25s}
+  .pillar:hover{transform:translateY(-6px);box-shadow:var(--sh-lg)}
+  .pillar .p-ico{width:58px;height:58px;border-radius:18px;background:var(--mint);display:grid;place-items:center;font-size:28px;margin-bottom:20px}
+  .pillar:nth-child(2) .p-ico{background:#FDF3E8}
+  .pillar:nth-child(3) .p-ico{background:#EDF5F0}
+  .pillar:nth-child(4) .p-ico{background:#FCEEDD}
+  .pillar h3{font-size:19px;font-weight:800;margin-bottom:9px;letter-spacing:-.01em}
+  .pillar p{font-size:14px;color:var(--ink-soft)}
+  @media(max-width:980px){.pillars{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.pillars{grid-template-columns:1fr}}
+
+  /* ---------- 知识共建 ---------- */
+  .cobuild{background:var(--card);border:1.5px solid #EDF2E4;border-radius:34px;padding:50px;box-shadow:var(--sh)}
+  .cb-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:44px;align-items:center}
+  .cb-act{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+  .cb-act .btn{font-size:16px;padding:16px 30px}
+  @media(max-width:840px){.cobuild{padding:36px 28px}.cb-grid{grid-template-columns:1fr;gap:28px}}
+
+  /* ---------- V2 路线图 ---------- */
+  .roadmap{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:stretch}
+  .rm-card{border-radius:30px;padding:36px 34px;transition:transform .25s}
+  .rm-card:hover{transform:translateY(-5px)}
+  .rm-card.done{background:var(--card);border:1.5px solid #EDF2E4;box-shadow:var(--sh)}
+  .rm-card.next{background:linear-gradient(150deg,#1E4030,#132B20);color:#E9F5EC;box-shadow:var(--sh-lg)}
+  .rm-tag{display:inline-block;font-size:12.5px;font-weight:800;padding:5px 14px;border-radius:999px;margin-bottom:18px}
+  .done .rm-tag{background:var(--mint);color:var(--green-deep);border:1.5px solid #D8E8CB}
+  .next .rm-tag{background:rgba(143,231,180,.16);color:#8FE7B4;border:1.5px solid rgba(143,231,180,.3)}
+  .rm-card h3{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .rm-solve{font-size:15px;font-weight:700;margin:8px 0 12px}
+  .done .rm-solve{color:var(--green-deep)}
+  .next .rm-solve{color:#8FE7B4}
+  .rm-card p{font-size:14.5px}
+  .done p{color:var(--ink-soft)}
+  .next p{color:rgba(233,245,236,.8)}
+  .rm-arrow{display:grid;place-items:center;font-size:30px;color:var(--green);font-weight:800}
+  .rm-more{text-align:center;margin-top:30px;font-size:15px;color:var(--ink-soft)}
+  .rm-more b{color:var(--green-deep)}
+  @media(max-width:840px){.roadmap{grid-template-columns:1fr}.rm-arrow{transform:rotate(90deg);padding:6px 0}}
+
   /* ---------- reveal ---------- */
   .js .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
   .js .reveal.in{opacity:1;transform:none}
@@ -299,9 +340,9 @@
 
 <nav>
   <div class="nav-bar">
-    <div class="brand"><svg class="logo"><use href="#fc-logo"/></svg> Body OS</div>
+    <div class="brand"><svg class="logo"><use href="#fc-logo"/></svg> FitCrew</div>
     <div class="nav-links">
-      <a href="#layers">能力</a><a href="#how">原理</a><a href="#cases">真实案例</a><a href="#trust">隐私</a><a href="#oss">开源</a>
+      <a href="#why">为什么</a><a href="#layers">能力</a><a href="#cases">真实案例</a><a href="#roadmap">路线图</a><a href="#oss">开源</a>
     </div>
     <div class="nav-act">
       <a class="btn btn-soft sm" href="https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f" target="_blank" rel="noopener">📝 提交需求</a>
@@ -314,17 +355,18 @@
 <header class="hero">
   <div class="wrap hero-grid">
     <div class="reveal">
-      <span class="eyebrow"><span class="dot"></span> 运行在飞书上的 AI 健身管理专家 · 已开源</span>
-      <h1>把健康<span class="hl">坚持</span>下去，<br>交给你的 AI 健身搭子</h1>
-      <p class="lead">一个 AI 专家，管好你的每一个健康群、也管好每一个人。群里结伴打卡、互相打气；单聊里私密跟踪、量身定制。不追体重，只陪你把一个个最小行动真正做下去。</p>
+      <span class="eyebrow"><span class="dot"></span> FitCrew · 运行在飞书上的 AI 健身管理专家 · 已开源</span>
+      <h1>不是 AI 客服，<br>是<span class="hl">你自己的 Body OS</span></h1>
+      <p class="lead">很多人看到 FitCrew 会问：“这不就是 AI 客服吗？”不是。客服答完标准问题就忘了你；FitCrew 是你自己的身体操作系统——它记得你、懂你的偏好、装着专家知识、还有你自己的健康数据库。<b>Fit＝健康，Crew＝伙伴</b>，是陪你把健康坚持下去的搭子团队。</p>
       <div class="cta-row">
         <a class="btn btn-fill" href="https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f" target="_blank" rel="noopener">📝 提交需求，一起共创 →</a>
         <button class="btn btn-soft" data-open-fs>扫码加我飞书</button>
       </div>
       <div class="hero-chips">
-        <span class="hchip"><b>多群</b> 一个大脑分别管理</span>
-        <span class="hchip"><b>每日</b> 低打扰打卡陪伴</span>
-        <span class="hchip"><b>1 对 1</b> 私密个性化小结</span>
+        <span class="hchip">🧠 <b>你的记忆</b></span>
+        <span class="hchip">🎯 <b>你的偏好</b></span>
+        <span class="hchip">📚 <b>专家系统</b></span>
+        <span class="hchip">🗄️ <b>个人数据库</b></span>
       </div>
     </div>
 
@@ -336,13 +378,13 @@
         <div class="screen">
           <div class="p-top">
             <svg class="logo"><use href="#fc-logo"/></svg>
-            <div><div class="g-name">健康搭子打卡群</div><div class="g-sub">Body OS · AI 健身管理专家</div></div>
+            <div><div class="g-name">健康搭子打卡群</div><div class="g-sub">FitCrew · AI 健身管理专家</div></div>
           </div>
           <div class="chat">
             <div class="msg me">今晚吃的喜家德 12 个饺子 🥟</div>
-            <div class="msg bot"><div class="who">Body OS</div>12 个刚刚好～ 约 <b>500-600 大卡</b>，蛋白质 20-25g、碳水 50-60g。✅ 合格的一餐，营养均衡，量也适中</div>
+            <div class="msg bot"><div class="who">FitCrew</div>12 个刚刚好～ 约 <b>500-600 大卡</b>，蛋白质 20-25g、碳水 50-60g。✅ 合格的一餐，营养均衡，量也适中</div>
             <div class="msg me">我今天走了 8500 步</div>
-            <div class="msg bot"><div class="who">Body OS</div>8500 步，非常棒！👏 已经进入主动活跃区间，饺子的消耗也刚刚好，能量平衡拿捏住了～ 每天稳定 8000+ 步，对心血管、血糖、睡眠都有明显帮助 💪</div>
+            <div class="msg bot"><div class="who">FitCrew</div>8500 步，非常棒！👏 已经进入主动活跃区间，饺子的消耗也刚刚好，能量平衡拿捏住了～ 每天稳定 8000+ 步，对心血管、血糖、睡眠都有明显帮助 💪</div>
             <div class="typing"><i></i><i></i><i></i></div>
           </div>
         </div>
@@ -350,6 +392,39 @@
     </div>
   </div>
 </header>
+
+<!-- 为什么不是客服 · 四支柱 -->
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-tag">核心差异</span>
+      <h2>为什么说它不是客服，是你自己的 Body OS？</h2>
+      <p>客服和健康专家的差别，就在于这四样东西：对你的记忆、对你的理解、专业的知识、还有你自己的数据。FitCrew 四样都有。</p>
+    </div>
+    <div class="pillars">
+      <div class="pillar reveal">
+        <div class="p-ico">🧠</div>
+        <h3>你的记忆</h3>
+        <p>它记得你的每一次打卡、每一个目标、每一点进展，甚至你随口提过的伤病。不是问完就忘的问答机器人——它知道“你上周怎么了”。</p>
+      </div>
+      <div class="pillar reveal">
+        <div class="p-ico">🎯</div>
+        <h3>你的偏好</h3>
+        <p>你喜欢什么运动、作息什么样、吃软还是吃硬——建议是为“你”定制的，不是对谁都一样的通用模板。</p>
+      </div>
+      <div class="pillar reveal">
+        <div class="p-ico">📚</div>
+        <h3>专家系统</h3>
+        <p>内置运动 / 营养 / 睡眠 / 恢复知识框架，加上持续加入的书籍笔记——像《抗糖革命》、精力管理。健康不止运动，还包括怎么好好吃。</p>
+      </div>
+      <div class="pillar reveal">
+        <div class="p-ico">🗄️</div>
+        <h3>你的数据库</h3>
+        <p>开始用的那一刻，就为你初始化专属健康数据库：目标、基线、伤病、习惯。数据属于你、随你成长——这是 FitCrew 一切能力的底座。</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- 三层能力 · bento -->
 <section id="layers">
@@ -366,7 +441,7 @@
         <h3>把一群人聚在一起坚持</h3>
         <p>每个群有独立人设和节奏，低打扰、可持续，重在同伴互助。被 @ 时结合上下文专业应答。</p>
         <div class="chips"><span class="chip">每日打卡</span><span class="chip">晚间复盘 / 互赞</span><span class="chip">每周合作周报</span><span class="chip">@ 即答</span></div>
-        <div class="demo">「晚上 8 点半，30 秒小复盘见～」——<b>今晚 20:30</b>，Body OS 会准时在群里等你。</div>
+        <div class="demo">「晚上 8 点半，30 秒小复盘见～」——<b>今晚 20:30</b>，FitCrew 会准时在群里等你。</div>
       </div>
       <div class="tile b-l2 reveal">
         <span class="badge">L2 · 个人私管理</span>
@@ -395,7 +470,7 @@
       <p>不需要配置复杂的打卡工具。机器人进群的那一刻，陪伴就开始了。</p>
     </div>
     <div class="steps">
-      <div class="step reveal"><div class="num"></div><h4>拉进群</h4><p>把 Body OS 拉进任意健康群，它自动识别并建立群档案。</p></div>
+      <div class="step reveal"><div class="num"></div><h4>拉进群</h4><p>把 FitCrew 拉进任意健康群，它自动识别并建立群档案。</p></div>
       <div class="step reveal"><div class="num"></div><h4>定目标</h4><p>自动发引导消息，让每位成员说出最想达成的健康目标。</p></div>
       <div class="step reveal"><div class="num"></div><h4>每日陪伴</h4><p>每天一个最小行动打卡，晚间复盘互赞，被 @ 随时专业回应。</p></div>
       <div class="step reveal"><div class="num"></div><h4>每周小结</h4><p>周日给每位成员单独私聊推送个人周报，只看坚持，不比数字。</p></div>
@@ -409,13 +484,65 @@
     <div class="sec-head reveal">
       <span class="sec-tag">方法论</span>
       <h2>不靠意志力硬扛，靠对的方法</h2>
-      <p>Body OS 的每一次提醒都遵循同一套行为科学原则——让坚持变得容易。</p>
+      <p>FitCrew 的每一次提醒都遵循同一套行为科学原则——让坚持变得容易。</p>
     </div>
     <div class="method reveal">
       <div class="m-col"><div class="k">微习惯</div><h4>小到不可能失败</h4><p>把"减脂 5kg"拆成"今天爬一层楼梯"。门槛低，才做得下去。</p></div>
       <div class="m-col"><div class="k">看行为，不比体重</div><h4>评分看坚持，不看数字</h4><p>完成度比体重秤更重要。今天做到了，就值得被看见。</p></div>
       <div class="m-col"><div class="k">不惩罚</div><h4>漏答不追责，可跳过</h4><p>状态不好就降级或跳过，没有压力，只有随时可以重新开始的陪伴。</p></div>
     </div>
+  </div>
+</section>
+
+<!-- 知识共建 -->
+<section id="cobuild">
+  <div class="wrap">
+    <div class="cobuild reveal">
+      <div class="cb-grid">
+        <div>
+          <span class="sec-tag">知识共建</span>
+          <h2>FitCrew 的知识库，一起建</h2>
+          <p>健康管理不止运动和睡眠，还包括怎么好好吃、怎么恢复、怎么睡。FitCrew 的专家系统除了内置知识，更会随大家的贡献一起成长：你认同的健身指导、读过的书籍笔记（像《抗糖革命》、精力管理）、营养知识总结，都欢迎投给我们。</p>
+          <div class="chips" style="margin-top:22px">
+            <span class="chip">📖 书籍笔记</span>
+            <span class="chip">🏋️ 健身指导</span>
+            <span class="chip">🥗 营养饮食</span>
+            <span class="chip">😴 睡眠恢复</span>
+          </div>
+        </div>
+        <div class="cb-act">
+          <a class="btn btn-fill" href="https://my.feishu.cn/share/base/shrcnyLKfCWnUGTHTq0zoLiOEed" target="_blank" rel="noopener">📝 我要投稿</a>
+          <div class="oss-note">采纳后会收录进知识库并署名致谢，<br>贡献者开放 GitHub 共创权限</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- V2 路线图 -->
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-tag">产品路线图</span>
+      <h2>FitCrew 要去哪里？</h2>
+      <p>每一个版本解决一个核心问题。这条路，我们和你一起走。</p>
+    </div>
+    <div class="roadmap">
+      <div class="rm-card done reveal">
+        <div class="rm-tag">v1 · 已上线</div>
+        <h3>「搭子」</h3>
+        <div class="rm-solve">解决“有人陪你坚持”</div>
+        <p>多群打卡、每日陪伴、晚间复盘、每周周报、同伴互励。让健康变成一件有人陪你一起做的事。</p>
+      </div>
+      <div class="rm-arrow reveal">→</div>
+      <div class="rm-card next reveal">
+        <div class="rm-tag">v2 · 开发中</div>
+        <h3>「零输入」</h3>
+        <div class="rm-solve">解决“不用动手也能管健康”</div>
+        <p>自动数据接入（苹果健康 / 智能手表 / 动态血糖仪），精力管理（血糖 × 睡眠 × HRV × 运动）。不用手动记录，它自动读懂你。</p>
+      </div>
+    </div>
+    <p class="rm-more reveal">v3 及以后：随大家共建生长的知识库、更多数据接入、更聪明的精力管理——<b>一起期待</b> ✨</p>
   </div>
 </section>
 
@@ -448,7 +575,7 @@
     <div class="sec-head reveal">
       <span class="sec-tag">真实案例</span>
       <h2>群里正在发生的真实瞬间</h2>
-      <p>不是演示脚本，是 Body OS 每天在群里真实做的事——以下都来自真实群聊摘录。</p>
+      <p>不是演示脚本，是 FitCrew 每天在群里真实做的事——以下都来自真实群聊摘录。</p>
     </div>
     <div class="scenes">
       <div class="scene reveal">
@@ -486,13 +613,13 @@
       <div class="oss-grid">
         <div>
           <span class="sec-tag">开源 · 共创</span>
-          <h2>Body OS 是开源的，<br>你的需求会变成下一个版本</h2>
-          <p>提交一条需求，它就会进入 Body OS 的需求池——我们每周 review 一次，规划进后续版本；提交者会获得 GitHub 共创权限，一起把这个产品做大。完整的 Agent 身份文件、记忆架构、定时任务与一键安装脚本也全部开源。</p>
-          <span class="repo">github.com/flicy/bodyos-agent</span>
+          <h2>FitCrew 是开源的，<br>你的需求会变成下一个版本</h2>
+          <p>提交一条需求，它就会进入 FitCrew 的需求池——我们每周 review 一次，规划进后续版本；提交者会获得 GitHub 共创权限，一起把这个产品做大。完整的 Agent 身份文件、记忆架构、定时任务与一键安装脚本也全部开源。</p>
+          <span class="repo">github.com/flicy/fitcrew-agent</span>
         </div>
         <div class="oss-act">
           <a class="btn btn-fill" href="https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f" target="_blank" rel="noopener">📝 提交需求，成为共创者</a>
-          <a class="btn btn-ghostd" href="https://github.com/flicy/bodyos-agent" target="_blank" rel="noopener">⭐ Star / 🍴 Fork</a>
+          <a class="btn btn-ghostd" href="https://github.com/flicy/fitcrew-agent" target="_blank" rel="noopener">⭐ Star / 🍴 Fork</a>
           <div class="oss-note">需求池每周 review · 提交者开放 GitHub 共创权限</div>
         </div>
       </div>
@@ -506,12 +633,12 @@
     <div class="cta-panel reveal">
       <div class="cta-in">
         <h2>今天，就给健康找个搭子</h2>
-        <p>提交一条需求，一起把 Body OS 做大；<br>或者扫码加 Chris 的飞书，聊聊怎么把它用起来。</p>
+        <p>提交一条需求，一起把 FitCrew 做大；<br>或者扫码加 Chris 的飞书，聊聊怎么把它用起来。</p>
         <div class="cta-row">
           <a class="btn btn-fill" href="https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f" target="_blank" rel="noopener">📝 提交需求 →</a>
           <button class="btn btn-soft" data-open-fs>扫码加我飞书</button>
         </div>
-        <div class="cta-sub">开源地址：<a href="https://github.com/flicy/bodyos-agent" target="_blank" rel="noopener">github.com/flicy/bodyos-agent</a> · 觉得有用就 <a href="https://github.com/flicy/bodyos-agent" target="_blank" rel="noopener">⭐ Star</a></div>
+        <div class="cta-sub">开源地址：<a href="https://github.com/flicy/fitcrew-agent" target="_blank" rel="noopener">github.com/flicy/fitcrew-agent</a> · 觉得有用就 <a href="https://github.com/flicy/fitcrew-agent" target="_blank" rel="noopener">⭐ Star</a></div>
       </div>
     </div>
   </div>
@@ -519,7 +646,7 @@
 
 <footer>
   <div class="wrap foot-in">
-    <div class="foot-brand"><svg class="logo"><use href="#fc-logo"/></svg> Body OS · AI 健身管理专家</div>
+    <div class="foot-brand"><svg class="logo"><use href="#fc-logo"/></svg> FitCrew · AI 健身管理专家</div>
     <div>运行于飞书 · 微习惯 · 看行为不比体重 · 隐私严格隔离 · 开源</div>
   </div>
 </footer>
@@ -533,10 +660,10 @@
     <div class="grab"></div>
     <button class="close-x" data-close-fs aria-label="关闭">✕</button>
     <h3><svg class="logo"><use href="#fc-logo"/></svg> 加 Chris 的飞书</h3>
-    <p class="sub">打开飞书扫一扫，加我好友，<br>聊聊怎么把 Body OS 用起来。</p>
+    <p class="sub">打开飞书扫一扫，加我好友，<br>聊聊怎么把 FitCrew 用起来。</p>
     <div class="qr-frame"><img src="./qr.png" alt="Chris 的飞书二维码"></div>
-    <div class="note-badge">添加时请备注 <b>Body OS</b></div>
-    <p class="hint">扫码添加后，备注「Body OS」，我会第一时间通过～</p>
+    <div class="note-badge">添加时请备注 <b>FitCrew</b></div>
+    <p class="hint">扫码添加后，备注「FitCrew」，我会第一时间通过～</p>
   </div>
 </div>
 
