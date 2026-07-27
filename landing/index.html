@@ -301,6 +301,22 @@
   .rm-more b{color:var(--green-deep)}
   @media(max-width:840px){.roadmap{grid-template-columns:1fr}.rm-arrow{transform:rotate(90deg);padding:6px 0}}
 
+  /* ---------- 需求采集 ---------- */
+  .feedback{background:linear-gradient(150deg,#2BB673,#1E8A54);color:#fff;border-radius:34px;padding:52px;box-shadow:var(--sh-lg);position:relative;overflow:hidden}
+  .feedback::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
+  .fb-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:44px;align-items:center;position:relative;z-index:1}
+  .feedback .sec-tag{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.3)}
+  .feedback h2{color:#fff}
+  .feedback p{color:rgba(255,255,255,.92)}
+  .fb-stats{display:flex;gap:34px;margin-top:28px}
+  .fb-stat b{display:block;font-size:27px;font-weight:800;letter-spacing:-.02em}
+  .fb-stat span{font-size:13px;color:rgba(255,255,255,.82)}
+  .fb-act{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+  .btn-big{font-size:17px;padding:18px 34px;background:#fff;color:var(--green-deep)}
+  .btn-big:hover{background:#F0FAF3}
+  .feedback .oss-note{color:rgba(255,255,255,.85)}
+  @media(max-width:840px){.feedback{padding:38px 28px}.fb-grid{grid-template-columns:1fr;gap:28px}.fb-stats{flex-wrap:wrap;gap:22px}}
+
   /* ---------- reveal ---------- */
   .js .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
   .js .reveal.in{opacity:1;transform:none}
@@ -342,7 +358,7 @@
   <div class="nav-bar">
     <div class="brand"><svg class="logo"><use href="#fc-logo"/></svg> FitCrew</div>
     <div class="nav-links">
-      <a href="#why">为什么</a><a href="#layers">能力</a><a href="#cases">真实案例</a><a href="#roadmap">路线图</a><a href="#oss">开源</a>
+      <a href="#why">为什么</a><a href="#layers">能力</a><a href="#cases">真实案例</a><a href="#roadmap">路线图</a><a href="#feedback">提需求</a><a href="#oss">开源</a>
     </div>
     <div class="nav-act">
       <a class="btn btn-soft sm" href="https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f" target="_blank" rel="noopener">📝 提交需求</a>
@@ -543,6 +559,30 @@
       </div>
     </div>
     <p class="rm-more reveal">v3 及以后：随大家共建生长的知识库、更多数据接入、更聪明的精力管理——<b>一起期待</b> ✨</p>
+  </div>
+</section>
+
+<!-- 需求采集 -->
+<section id="feedback">
+  <div class="wrap">
+    <div class="feedback reveal">
+      <div class="fb-grid">
+        <div>
+          <span class="sec-tag">需求采集</span>
+          <h2>你想要什么，直接告诉我们</h2>
+          <p>FitCrew 的每一个版本，都来自真实用户的声音。花 1 分钟填个问卷，你的需求会进入我们的需求池，每周 review、排期、实现——采纳后还会通知你。所有需求都会沉淀成可读的飞书文档，由团队统一管理。</p>
+          <div class="fb-stats">
+            <div class="fb-stat"><b>1 分钟</b><span>填完问卷</span></div>
+            <div class="fb-stat"><b>每周</b><span>review 排期</span></div>
+            <div class="fb-stat"><b>100%</b><span>采纳通知</span></div>
+          </div>
+        </div>
+        <div class="fb-act">
+          <a class="btn btn-big" href="https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f" target="_blank" rel="noopener">📝 填写需求问卷 →</a>
+          <div class="oss-note">需求进入飞书需求池 · 生成可读飞书文档 · 采纳后通知你</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
