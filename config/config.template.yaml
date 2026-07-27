@@ -1,4 +1,4 @@
-# Body OS config.yaml 模板
+# FitCrew config.yaml 模板
 # install.sh 会把占位符替换后写入 profile 的 config.yaml。
 # ⚠️ 这是 YAML，手工编辑务必保证语法正确——写坏会导致 Hermes 静默回退默认配置。
 
