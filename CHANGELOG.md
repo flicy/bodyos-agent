@@ -1,7 +1,7 @@
 # Changelog
 
-Body OS 的版本更新记录。每个 MINOR 版本有一个主题名。
-需求来自「Body OS 需求池」（落地页问卷 + 用户访谈 + 群聊观察），每周 review 排期。
+FitCrew 的版本更新记录。每个 MINOR 版本有一个主题名。
+需求来自「FitCrew 需求池」（落地页问卷 + 用户访谈 + 群聊观察），每周 review 排期。
 
 ---
 
@@ -37,4 +37,4 @@ Body OS 的版本更新记录。每个 MINOR 版本有一个主题名。
 
 ---
 
-*提交需求：[Body OS 需求反馈问卷](https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f) · 被采纳会开放 GitHub 共创权限*
+*提交需求：[FitCrew 需求反馈问卷](https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f) · 被采纳会开放 GitHub 共创权限*
