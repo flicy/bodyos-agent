@@ -63,6 +63,13 @@ def test_certificate_renewal_restarts_caddy_when_admin_api_is_disabled() -> None
     assert "caddy reload" not in renewal
 
 
+def test_model_login_uses_the_installed_hermes_auth_cli() -> None:
+    login = (ROOT / "infra/tencent/model-login.sh").read_text()
+
+    assert "hermes auth add openai-codex" in login
+    assert "hermes login openai-codex" not in login
+
+
 def test_examples_do_not_contain_committable_secrets() -> None:
     example = (ROOT / "infra/tencent/env.example").read_text()
     assert "sk-" not in example
