@@ -149,9 +149,10 @@ services:
     cap_drop:
       - ALL
     cap_add:
-      # Required only when copying renewed certificates to the non-root Caddy
-      # runtime. The container still has no network-binding or broad admin caps.
+      # Required only when copying and replacing renewed certificates for the
+      # non-root Caddy runtime. No network-binding or broad admin caps are kept.
       - CHOWN
+      - FOWNER
     networks:
       - backend
 
