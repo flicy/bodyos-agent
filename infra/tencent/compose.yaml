@@ -148,6 +148,10 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      # Required only when copying renewed certificates to the non-root Caddy
+      # runtime. The container still has no network-binding or broad admin caps.
+      - CHOWN
     networks:
       - backend
 
