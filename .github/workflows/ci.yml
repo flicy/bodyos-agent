@@ -42,17 +42,16 @@ jobs:
             infra/tencent/runtime/owner
           cp infra/tencent/ci-runtime.fixture infra/tencent/runtime/.env.runtime
           cp infra/tencent/Caddyfile.http infra/tencent/runtime/Caddyfile
+          trap 'docker compose --env-file infra/tencent/runtime/.env.runtime -f infra/tencent/compose.yaml down -v' EXIT
           docker compose --env-file infra/tencent/runtime/.env.runtime \
             -f infra/tencent/compose.yaml config >/dev/null
           docker compose --env-file infra/tencent/runtime/.env.runtime \
             -f infra/tencent/compose.yaml build api
           docker compose --env-file infra/tencent/runtime/.env.runtime \
-            -f infra/tencent/compose.yaml up -d db api
+            -f infra/tencent/compose.yaml up -d --wait --wait-timeout 120 db api
           docker compose --env-file infra/tencent/runtime/.env.runtime \
             -f infra/tencent/compose.yaml exec -T api python -c \
             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"
-          docker compose --env-file infra/tencent/runtime/.env.runtime \
-            -f infra/tencent/compose.yaml down -v
 
   swift-core:
     runs-on: macos-15
