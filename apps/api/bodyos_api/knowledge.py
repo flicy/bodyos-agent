@@ -65,6 +65,30 @@ class KnowledgeService:
             raise ValueError("private knowledge requires an owner")
         if visibility == "public" and fitcrew_user_id is not None:
             raise ValueError("public knowledge must not retain a private owner")
+        owner_filter = (
+            KnowledgeSource.fitcrew_user_id == fitcrew_user_id
+            if fitcrew_user_id is not None
+            else KnowledgeSource.fitcrew_user_id.is_(None)
+        )
+        latest = self._session.scalar(
+            select(KnowledgeSource)
+            .where(
+                KnowledgeSource.visibility == visibility,
+                KnowledgeSource.title == title,
+                owner_filter,
+            )
+            .order_by(KnowledgeSource.version.desc())
+            .limit(1)
+        )
+        if (
+            latest is not None
+            and latest.content_hash == content_hash
+            and latest.review_status != "withdrawn"
+        ):
+            return latest
+        version = (latest.version + 1) if latest is not None else 1
+        if visibility == "private" and latest is not None:
+            latest.review_status = "superseded"
         source = KnowledgeSource(
             fitcrew_user_id=fitcrew_user_id,
             visibility=visibility,
@@ -74,7 +98,7 @@ class KnowledgeService:
             content_hash=content_hash,
             rights_status=rights_status,
             review_status="approved_private" if visibility == "private" else "captured",
-            version=1,
+            version=version,
         )
         self._session.add(source)
         self._session.flush()
@@ -96,10 +120,14 @@ class KnowledgeService:
 
     def get_private_source(self, fitcrew_user_id: str, *, title: str) -> KnowledgeSource:
         source = self._session.scalar(
-            select(KnowledgeSource).where(
+            select(KnowledgeSource)
+            .where(
                 KnowledgeSource.title == title,
                 KnowledgeSource.visibility == "private",
+                KnowledgeSource.review_status == "approved_private",
             )
+            .order_by(KnowledgeSource.version.desc())
+            .limit(1)
         )
         if source is None or source.fitcrew_user_id != fitcrew_user_id:
             raise KnowledgeAccessDenied("private source is unavailable for this user")

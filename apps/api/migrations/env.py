@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -5,6 +6,8 @@ from bodyos_api.models import Base
 from sqlalchemy import engine_from_config, pool
 
 config = context.config
+if database_url := os.environ.get("BODYOS_DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

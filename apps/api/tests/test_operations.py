@@ -40,3 +40,9 @@ def test_examples_do_not_contain_committable_secrets() -> None:
     assert "cli_" not in example
     assert "CHANGE_ME" not in example
     assert "BODYOS_ENCRYPTION_KEY=" not in example
+
+
+def test_alembic_uses_the_production_database_environment() -> None:
+    migration_environment = (ROOT / "apps/api/migrations/env.py").read_text()
+    assert 'os.environ.get("BODYOS_DATABASE_URL")' in migration_environment
+    assert 'config.set_main_option("sqlalchemy.url"' in migration_environment

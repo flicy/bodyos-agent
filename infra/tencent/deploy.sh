@@ -12,8 +12,10 @@ if [ ! -f "$ENV_FILE" ]; then
     (cd "$HERE" && python3 generate-runtime-env.py)
 fi
 
-mkdir -p "$RUNTIME/acme" "$RUNTIME/tls" "$RUNTIME/letsencrypt" "$RUNTIME/backups"
-chmod 700 "$RUNTIME" "$RUNTIME/tls" "$RUNTIME/letsencrypt" "$RUNTIME/backups"
+mkdir -p "$RUNTIME/acme" "$RUNTIME/tls" "$RUNTIME/letsencrypt" "$RUNTIME/backups" \
+    "$RUNTIME/private-books" "$RUNTIME/owner"
+chmod 700 "$RUNTIME" "$RUNTIME/tls" "$RUNTIME/letsencrypt" "$RUNTIME/backups" \
+    "$RUNTIME/private-books" "$RUNTIME/owner"
 chmod 755 "$RUNTIME/acme"
 install -m 0644 "$HERE/Caddyfile.http" "$RUNTIME/Caddyfile"
 

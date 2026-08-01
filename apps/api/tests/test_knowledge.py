@@ -1,6 +1,6 @@
 from bodyos_api.crypto import FieldCipher
 from bodyos_api.knowledge import KnowledgeAccessDenied, KnowledgeService
-from bodyos_api.models import KnowledgeChunk, User
+from bodyos_api.models import KnowledgeChunk, KnowledgeSource, User
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -107,3 +107,43 @@ def test_withdrawn_source_is_removed_from_retrieval(
     service.withdraw_source(OWNER, source.id)
 
     assert service.search_private(OWNER, "可持续") == []
+
+
+def test_private_import_is_idempotent_and_versions_changed_content(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    seed_users(session)
+    service = KnowledgeService(session, field_cipher)
+    first = service.import_pages(
+        fitcrew_user_id=OWNER,
+        title="私人资料",
+        author=None,
+        content_hash="e" * 64,
+        rights_status="user_provided_private_use_unverified",
+        pages={1: "第一版健康行动"},
+    )
+
+    replay = service.import_pages(
+        fitcrew_user_id=OWNER,
+        title="私人资料",
+        author=None,
+        content_hash="e" * 64,
+        rights_status="user_provided_private_use_unverified",
+        pages={1: "第一版健康行动"},
+    )
+    changed = service.import_pages(
+        fitcrew_user_id=OWNER,
+        title="私人资料",
+        author=None,
+        content_hash="f" * 64,
+        rights_status="user_provided_private_use_unverified",
+        pages={1: "第二版可持续健康行动"},
+    )
+
+    assert replay.id == first.id
+    assert changed.id != first.id
+    assert changed.version == 2
+    assert first.review_status == "superseded"
+    assert len(session.scalars(select(KnowledgeSource)).all()) == 2
+    hits = service.search_private(OWNER, "可持续")
+    assert {hit.source_id for hit in hits} == {changed.id}
