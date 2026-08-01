@@ -1,40 +1,31 @@
-# Changelog
+# Changelog / 更新记录
 
-FitCrew 的版本更新记录。每个 MINOR 版本有一个主题名。
-需求来自「FitCrew 需求池」（落地页问卷 + 用户访谈 + 群聊观察），每周 review 排期。
+## 中文
 
----
+### 未发布：v2.0.0-alpha.1（Owner-only）
 
-## [Unreleased]
+- 新增可选 HealthKit Bridge，接入 Apple 健康、Apple 健身及鱼跃写入 Apple 健康的血糖数据。
+- 新增加密、幂等、按 consent category 的摄取，以及血糖/睡眠/活动/恢复日聚合。
+- 新增飞书主账号与内部稳定身份绑定；群聊固定 token，个性化信息仅在本人私聊。
+- 新增 Codex CLI 主路由与 Hermes OpenAI Codex OAuth 备用，模型仅看去标识化 envelope。
+- 新增私人 PDF 加密分段、页码引用、公共知识审核与需求状态机。
+- 新增腾讯云单机部署、免费公网 IP HTTPS、加密备份、恢复演练与 SHA 回滚。
 
-### 规划中（v2.0「零输入」）
-- 苹果健康 / 手表 MCP / 动态血糖仪数据自动接入（来自用户调研）
-- 精力管理：血糖 × 睡眠 × HRV × 运动交叉分析
-- 提示词注入防护与数据归属（对外服务安全）
-- 个人知识库问答（私教记录 + 专业书籍）
+### v1.0「搭子」— 2026-07-22
 
----
+首个多群健康搭子 Agent 包，提供群运营、行为打卡、私聊与基础隔离。V2 收紧了 V1 的自由群聊和文件记忆边界；旧行为不得绕过 V2 策略层。
 
-## [v1.0]「搭子」 - 2026-07-22
+## English
 
-首个可用版本：一个 AI 专家管好多个健康群 + 每个人。
+### Unreleased: v2.0.0-alpha.1 (owner-only)
 
-### 新增
-- 多群管理：一个大脑分别运营多个飞书健康群，群与群严格隔离
-- 每日打卡：早晨天气播报 + 打卡邀请，晚间 30 秒复盘
-- 喝水提醒：每小时智能提醒，9:00-20:00 累计追踪 1.8L 目标（来自群友需求）
-- @ 即答：群里 @ 机器人，结合上下文专业回应
-- 个人私聊小结：每周给每位成员单独推送个人周报，只看坚持不比体重
-- 新群引导：机器人入群自动建档 + 发引导消息收集成员目标
-- 隐私隔离：群与个人严格隔离，敏感数据绝不进群
-- 开源 Agent 包：完整身份文件 / 记忆架构 / 定时任务 / 一键安装脚本
-- 产品落地页（清新自然风）+ 需求反馈问卷
+- Added an optional HealthKit Bridge for Apple Health, Apple Fitness, and Yuwell glucose data written into Apple Health.
+- Added encrypted, idempotent, consent-category ingestion plus daily glucose, sleep, activity, and recovery aggregates.
+- Added Feishu-primary identity binding; groups use fixed tokens and personalized information stays in the owner's DM.
+- Added Codex CLI primary routing with Hermes OpenAI Codex OAuth fallback; models see only de-identified envelopes.
+- Added encrypted private-PDF chunks, page citations, public-knowledge review, and a demand state machine.
+- Added single-host Tencent deployment, free public-IP HTTPS, encrypted backups, restore tests, and SHA rollback.
 
-### 方法论
-- 微习惯：把大目标拆成不可能失败的最小行动
-- 看行为不比体重：评分看坚持，不看数字
-- 不惩罚：漏答不追责，可跳过可降级
+### v1.0 “Buddy” — 2026-07-22
 
----
-
-*提交需求：[FitCrew 需求反馈问卷](https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f) · 被采纳会开放 GitHub 共创权限*
+The first multi-group health-buddy Agent package provided group operations, behavior check-ins, DMs, and basic isolation. V2 tightens V1's free-form group and file-memory boundaries; legacy behavior may not bypass V2 policy.

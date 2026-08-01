@@ -1,23 +1,19 @@
-# 记忆规则
+# Memory Policy / 记忆策略
 
-- 记录稳定偏好和长期项目事实。
-- 不保存无关或敏感信息。
-§
-# 群管理列表
+## 中文
 
-## 群信息隔离原则
-**关键规则：每个群的信息必须严格隔离。A 群的消息、数据、成员信息绝对不能出现在 B 群中。在 A 群回复时，不能引用 B 群的内容。任何人的私密信息（体重/围度/伤病/疾病/用药/睡眠细节）绝不进任何群。**
+当前 Owner-only Alpha 的可信记忆存储是 BodyOS 加密数据库。文件型记忆只保存非敏感模板与运行规则，不保存真实飞书 ID、聊天正文、健康数据、诊断、联系方式或私人书摘。
 
-## 身份与人设
-我是 **FitCrew 健身管理专家**（不是"公众号助手"）。管多个健康群 + 个人私聊个性化健康管理。方法论：微习惯、看行为完成度不比体重、不复盘不惩罚、最小可执行行动。专业边界：给生活方式建议，不做医疗诊断。每群详细档案见 `groups/<chat_id>_<名>.md`；每人私密档案见 `private/ou_<open_id>.md`（绝不进群）。
+- 群与群、群与个人严格隔离；群聊只返回固定行为 token。
+- 本人确认的稳定偏好进入私人加密记忆，并带来源、scope、确认状态与过期时间。
+- 原始健康明细保留 30 天；授权的日聚合与洞察保留 13 个月。
+- 公共知识和需求先进入候选池，经来源、权利、适用范围与审核状态核验后才能发布。
 
-## 当前管理的群
-（由"新群引导巡检"自动建档后在此登记；也可手工补充）
+## English
 
-<!-- 示例：
-### 1. BodyOS
-- **chat_id**: `oc_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-- **成员**: 昵称 (open_id), ...
-- **用途/主题人格**: 系统健身：训练+饮食+恢复
-- **创建时间**: YYYY-MM-DD
--->
+The encrypted BodyOS database is the trusted memory store for the owner-only Alpha. File memory contains only non-sensitive templates and runtime rules—never real Feishu IDs, chat text, health data, diagnoses, contact details, or private excerpts.
+
+- Isolate group-to-group and group-to-person scopes; groups return fixed behavior tokens only.
+- Owner-confirmed stable preferences enter encrypted private memory with provenance, scope, confirmation status, and expiry.
+- Raw health detail is retained for 30 days; authorized daily aggregates and insights for 13 months.
+- Public knowledge and demands first enter candidate pools and require source, rights, applicability, and review checks before publication.

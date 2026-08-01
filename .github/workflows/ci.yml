@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-and-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.8.13"
+          enable-cache: true
+      - name: Test and lint
+        run: |
+          uv sync --frozen --extra dev
+          uv run pytest -q
+          uv run ruff check apps/api scripts infra/tencent
+          uv run python scripts/check_bilingual_docs.py
+      - name: Validate shell, JSON, and repository secrets
+        run: |
+          for file in install.sh scripts/*.sh infra/tencent/*.sh; do bash -n "$file"; done
+          python -m json.tool cron/jobs.seed.json >/dev/null
+          python -m json.tool packages/contracts/health-sync-v1.schema.json >/dev/null
+          if git grep -nE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|sk-[A-Za-z0-9_-]{16,}' -- ':!uv.lock'; then
+            exit 1
+          fi
+      - name: Validate and smoke-test Compose
+        run: |
+          mkdir -p infra/tencent/runtime/acme infra/tencent/runtime/tls \
+            infra/tencent/runtime/letsencrypt infra/tencent/runtime/private-books \
+            infra/tencent/runtime/owner
+          cp infra/tencent/ci-runtime.fixture infra/tencent/runtime/.env.runtime
+          cp infra/tencent/Caddyfile.http infra/tencent/runtime/Caddyfile
+          docker compose --env-file infra/tencent/runtime/.env.runtime \
+            -f infra/tencent/compose.yaml config >/dev/null
+          docker compose --env-file infra/tencent/runtime/.env.runtime \
+            -f infra/tencent/compose.yaml build api
+          docker compose --env-file infra/tencent/runtime/.env.runtime \
+            -f infra/tencent/compose.yaml up -d db api
+          docker compose --env-file infra/tencent/runtime/.env.runtime \
+            -f infra/tencent/compose.yaml exec -T api python -c \
+            "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"
+          docker compose --env-file infra/tencent/runtime/.env.runtime \
+            -f infra/tencent/compose.yaml down -v
+
+  swift-core:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test portable HealthKit core
+        working-directory: apps/ios-bridge/Core
+        run: swift test
+
+  ios-build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Generate and compile iOS project
+        working-directory: apps/ios-bridge
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild build \
+            -project FitCrewHealthBridge.xcodeproj \
+            -scheme FitCrewHealthBridge \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO

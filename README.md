@@ -1,104 +1,59 @@
-# FitCrew · AI 健身管理专家
+# FitCrew / BodyOS V2 Owner Alpha
 
-> 🌐 **产品介绍页（在线）**：https://flicy.github.io/cola-pages/fitcrew/
-> 📝 **提交需求 / 成为共创者**：[需求反馈问卷](https://my.feishu.cn/share/base/shrcn09DqqE2jjV5mWi7ZPrrG8f)（每周 review，被采纳开放 GitHub 共创权限）
-> 📋 **版本更新**：见 [CHANGELOG.md](./CHANGELOG.md)
+## 中文
 
-一个**可加载的飞书 AI 健身管理专家 Agent 安装包**。一次安装，得到一个能管理多个健康群、并对每个人做私密个性化健康管理的 AI 助手。
+FitCrew 是产品与社区品牌，BodyOS 是用户在飞书中接触的私人健康教练，Moticlaw 是 Agent 的配置与管理入口。V2 Owner Alpha 把 Apple 健康、Apple 健身与鱼跃 Anytime 5 Pro 写入 Apple 健康的数据，经可选的 iOS HealthKit Bridge 接入本人专属服务。
 
-> 本包是可复用安装产物；完整产品背景与运行手册见项目内的 `PRODUCT.md`。
+当前版本只供 Owner 本人使用。飞书账号是主账号，内部用不可变的 `fitcrew_user_id` 绑定身份；Apple 设备和健康授权均为可选项。原始健康数据以 AES-GCM 加密保存，模型只接收确定性聚合特征、意图和带页码的私人知识摘录，不接收姓名、飞书 ID、聊天原文或原始健康序列。
 
-## 它能做什么
+群聊只允许五种固定低敏行为结果：完成今日行动、需要搭子、愿意分享、把行动变小、转到私聊获取个性化建议。个性化健康信息只在本人私聊出现，BodyOS 不做医疗诊断。
 
-- **群运营**：管理多个健康群，每日打卡、晚间复盘/互赞、每周周报、同伴互助；每个群有独立人设和节奏。
-- **个人私管理**：单聊里做入组评估、目标拆解、敏感数据跟踪、一对一建议、每周个人私聊小结。
-- **专家大脑**：运动/营养/恢复/睡眠知识 + 行为科学（微习惯、看行为完成度不比体重、不复盘不惩罚）。
-- **自动引导**：被拉入新群自动发引导消息，让成员主动说出健康目标。
-- **隐私红线**：群与群、群与个人严格隔离；私密信息绝不进群。
+### 组件
 
-## 目录结构
+- `apps/api/`：FastAPI、授权、加密摄取、日特征、知识/需求池与 BodyOS 模型边界。
+- `apps/ios-bridge/`：HealthKit 最小读取授权、增量同步及第 16 天全量对账。
+- `integrations/hermes/`：Moticlaw/Hermes 通道的预模型 Guard；Codex CLI 为主路由，Hermes OpenAI Codex OAuth 为备用。
+- `infra/tencent/`：现有腾讯云东京 Lighthouse 的零新增现金部署、IP HTTPS、加密备份与 SHA 回滚。
+- `scripts/import_private_books.py`：在 Git 外把本人提供的 PDF 加密导入私人知识库。
 
-```
-fitcrew-agent/
-├── install.sh                 # 一键安装到新 Hermes profile
-├── agent/                     # Agent 身份文件（装入 profile）
-│   ├── AGENTS.md              # 角色与职责
-│   ├── SOUL.md                # 性格与人设
-│   └── HERMES.md              # 运行规则/操作手册（隔离红线、记忆结构、cron）
-├── config/
-│   ├── config.template.yaml   # 模型 + 飞书 + 群规则模板
-│   └── env.template           # 飞书 + 推理凭据模板
-├── memories/                  # 记忆种子
-│   ├── MEMORY.md              # 隔离原则 + 群索引
-│   ├── USER.md                # 全局偏好
-│   ├── groups/_TEMPLATE.md    # 群档案模板
-│   ├── private/_TEMPLATE.md   # 私人档案模板
-│   └── daily/README.md        # 30 天明细规则
-├── scripts/
-│   ├── feishu_group_watcher.py  # @提及巡检（从 groups/ 自动推导群列表）
-│   ├── add_group_rule.py        # 安全写 config group_rule（YAML 往返）
-│   └── add-group.sh             # 给一个群开通标准节奏
-├── cron/
-│   └── jobs.seed.json         # 通用定时任务种子（新群引导/@巡检/周度私聊小结）
-└── landing/index.html         # 产品介绍落地页
-```
-
-## 依赖
-
-- macOS + [Hermes Agent](https://github.com/) 运行时（`~/.hermes/hermes-agent/`，含 venv）。Moticlaw 桌面应用自带。
-- 一个飞书企业自建应用（拿到 App ID / App Secret），开启机器人能力与 im 消息读写权限。
-- 一个 OpenAI 兼容的推理端点（默认 SenseNova：`https://token.sensenova.cn/v1` + `deepseek-v4-flash`）。
-- `lark-cli`（@提及巡检脚本用）。
-
-## 快速开始
+### 本地验证
 
 ```bash
-cd fitcrew-agent
-
-# 1) 安装（参数可用环境变量传，否则交互询问）
-FITCREW_PROFILE=fitcrew \
-FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_HOME_CHANNEL=oc_xxx \
-FITCREW_MODEL=deepseek-v4-flash \
-FITCREW_BASE_URL=https://token.sensenova.cn/v1 \
-FITCREW_API_KEY=sk-xxx \
-./install.sh
-
-# 2) 在飞书把机器人拉进健康群
-#    「新群引导巡检」每 10 分钟自动发现新群、建档、发引导消息
-
-# 3) 给某个群开通每日打卡/复盘/周报节奏
-~/.hermes/profiles/fitcrew/scripts/add-group.sh fitcrew oc_xxxxxxxx 健康搭子打卡群 buddy
-#    theme: system(系统健身) | buddy(搭子打卡) | wellness(轻量养生)
-~/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main --profile fitcrew gateway restart
+uv sync --extra dev
+uv run pytest -q
+uv run ruff check apps/api scripts infra/tencent
+(cd apps/ios-bridge/Core && swift test)
 ```
 
-## 安装做了什么
+生产部署和物理设备步骤见 `docs/operations/deployment-and-rollback.md` 与 `docs/experiments/owner-cgm-16-day-runbook.md`。三本私人 PDF、健康导出、OAuth 凭据、飞书密钥、运行环境文件与真实证据均不得进入 Git。
 
-1. 建 profile，装入 `AGENTS.md`/`SOUL.md`/`HERMES.md` 身份文件。
-2. 渲染 `config.yaml`（模型/飞书/群规则）与 `.env`（飞书 + 推理凭据）。
-3. 铺好记忆种子（隔离原则、群/私人档案模板、30 天明细规则）与巡检脚本。
-4. 加载 3 个通用定时任务（新群引导巡检 / @提及巡检 / 个人周度私聊小结）。
-5. 安装并启动 gateway（launchd 服务，开机自启）。
+产品介绍页保持在 <https://flicy.github.io/cola-pages/fitcrew/>。本仓库所有变更通过 PR 进入 `main`；未经 Owner 明确批准不合并或发布版本。
 
-## 定时任务一览
+## English
 
-| 任务 | 时间 | 范围 | 来源 |
-|---|---|---|---|
-| 新群引导巡检 | 每 10 分钟 | 全部群 | install（通用） |
-| @提及巡检 | 每 5 分钟 | 全部群 | install（通用，脚本） |
-| 个人周度私聊小结 | 周日 20:00 | 每位成员单聊 | install（通用） |
-| 群早打卡 / 晚复盘 / 周报 | 08:30 / 20:30 / 周日21:00 | 单个群 | add-group（system/buddy） |
-| 每日最小行动 / 晚间互赞 | 09:00 / 21:00 | 单个群 | add-group（wellness） |
+FitCrew is the product and community brand, BodyOS is the private health coach users meet in Feishu, and Moticlaw is the Agent configuration and management surface. V2 Owner Alpha connects Apple Health, Apple Fitness, and Yuwell Anytime 5 Pro data written into Apple Health through an optional iOS HealthKit Bridge to an owner-dedicated service.
 
-## 重要约定（务必遵守）
+This release is owner-only. Feishu is the primary account while an immutable internal `fitcrew_user_id` binds identities; Apple devices and health authorization are optional. Raw health fields are encrypted with AES-GCM. A model receives only deterministic aggregates, intent, and page-cited private knowledge excerpts—never names, Feishu IDs, raw chat, or raw health series.
 
-- ⚠️ **不要手工直接编辑 `config.yaml`**（尤其 group_rules）——YAML 写坏会导致 Hermes 静默回退默认配置，极隐蔽。用 `add-group.sh` 或 Moticlaw 正常流程。
-- ⚠️ **新建定时任务一律用 `hermes cron create`**（落盘 jobs.json），别让任务只活在运行内存（重启会丢）。
-- `.env` 必须同时有 `OPENAI_API_KEY` + `OPENAI_BASE_URL`，否则 cron/后台报 `No inference provider configured`。
-- 隐私红线：群隔离 + 私密不可进群；不做医疗诊断。
+Group chat permits only five fixed low-sensitivity outcomes: today's action completed, need a buddy, willing to share, make the action smaller, or move to DM for personalized guidance. Personalized health information stays in the owner's DM, and BodyOS does not diagnose.
 
-## 自定义
+### Components
 
-- 改人设语气：编辑装入后的 `SOUL.md`。
-- 改群主题/节奏：在 `add-group.sh` 的 theme 分支里调整 prompt 与时间。
-- 改引导话术：`cron/jobs.seed.json` 与 `agent/HERMES.md` 中的引导消息模板。
+- `apps/api/`: FastAPI, consent, encrypted ingestion, daily features, knowledge/demand pools, and the BodyOS model boundary.
+- `apps/ios-bridge/`: minimum HealthKit read authorization, incremental sync, and day-16 reconciliation.
+- `integrations/hermes/`: the pre-model guard for Moticlaw/Hermes channels; Codex CLI is primary and Hermes OpenAI Codex OAuth is fallback.
+- `infra/tencent/`: zero-new-cash deployment, IP HTTPS, encrypted backups, and SHA rollback on the existing Tokyo Lighthouse.
+- `scripts/import_private_books.py`: encrypted private-book import outside Git.
+
+### Local verification
+
+```bash
+uv sync --extra dev
+uv run pytest -q
+uv run ruff check apps/api scripts infra/tencent
+(cd apps/ios-bridge/Core && swift test)
+```
+
+See `docs/operations/deployment-and-rollback.md` and `docs/experiments/owner-cgm-16-day-runbook.md` for production and physical-device steps. Private PDFs, health exports, OAuth credentials, Feishu secrets, runtime environments, and real private evidence must never enter Git.
+
+The product page remains at <https://flicy.github.io/cola-pages/fitcrew/>. All repository changes reach `main` through a PR; no merge or release occurs without explicit owner approval.
