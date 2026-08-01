@@ -5,6 +5,8 @@ HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ENV_FILE="$HERE/runtime/.env.runtime"
 COMPOSE="docker compose --env-file $ENV_FILE -f $HERE/compose.yaml"
 
+chown 1000:1000 "$HERE/runtime/owner"
+chmod 700 "$HERE/runtime/owner"
 $COMPOSE exec -T api python /app/scripts/bootstrap_owner.py
 test -s "$HERE/runtime/owner/owner-bootstrap.json"
 test -s "$HERE/runtime/owner/owner-pairing.png"
