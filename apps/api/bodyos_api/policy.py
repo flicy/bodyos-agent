@@ -21,6 +21,7 @@ class BehaviorToken(StrEnum):
     NEED_BUDDY = "need_buddy"
     WILLING_TO_SHARE = "willing_to_share"
     SMALLER_ACTION = "smaller_action"
+    PRIVATE_COACHING = "private_coaching"
 
     @property
     def message(self) -> str:
@@ -29,6 +30,7 @@ class BehaviorToken(StrEnum):
             BehaviorToken.NEED_BUDDY: "今天需要一个搭子陪我完成小行动。",
             BehaviorToken.WILLING_TO_SHARE: "今天愿意分享一个健康小行动。",
             BehaviorToken.SMALLER_ACTION: "今天选择把行动再变小一点。",
+            BehaviorToken.PRIVATE_COACHING: "个性化健康建议请私聊 BodyOS。",
         }[self]
 
 

@@ -12,7 +12,13 @@ class Settings(BaseSettings):
     encryption_key: SecretStr = SecretStr("")
     owner_token: SecretStr = SecretStr("")
     identity_pepper: SecretStr = SecretStr("")
+    internal_token: SecretStr = SecretStr("")
+    model_proxy_token: SecretStr = SecretStr("")
     public_base_url: str = "http://127.0.0.1:8000"
+    codex_command: str = "codex"
+    hermes_command: str = "hermes"
+    hermes_model: str = "gpt-5.3-codex"
+    model_timeout_seconds: int = 120
     log_level: str = "INFO"
 
 

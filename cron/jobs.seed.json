@@ -1,27 +1,12 @@
 {
-  "_comment": "FitCrew 通用定时任务种子（对所有群生效，与具体 chat_id 无关）。install.sh 会把 __PROFILE_DIR__ 替换为实际 profile 路径后，用 hermes cron create 逐个加载。各群的早/晚/周节奏任务由 add-group.sh 按群生成。",
+  "_comment": "BodyOS 群聊巡检不调用 LLM；脚本经服务端确定性分类后只回复固定低敏行为令牌。BodyOS group mention polling does not invoke an LLM; the script uses server-side deterministic classification and replies only with fixed low-sensitivity behavior tokens.",
   "jobs": [
     {
-      "name": "新群引导巡检",
-      "schedule": "*/10 * * * *",
-      "deliver": "local",
-      "skills": ["lark-im", "lark-shared"],
-      "prompt": "你是 FitCrew 健身管理专家，执行“新群引导巡检”。目标：发现机器人新加入但尚未建档的飞书群，自动建档并发送入群引导，引导每位成员主动说出自己加入这个群的健康目标。\n\n步骤：\n1. 读取 __PROFILE_DIR__/channel_directory.json，取 platforms.feishu 中 type=group 的条目，按 chat_id 去重（忽略带冒号的话题子项和 type=dm）。\n2. 列出 __PROFILE_DIR__/memories/groups/ 下已建档的群（文件名形如 <chat_id>_<名字>.md）。\n3. 对每个“在群列表里、但 groups/ 中还没有档案”的新群：\n   a. 用 lark-im 向该群发送引导消息（只发一次）：「大家好，我是这个群的 AI 健身管理伙伴 🏃，很高兴被邀请进来！开始之前，想先认识每一位——用一句话告诉大家：你加入这个群，最想达成的一个健康目标是什么？（比如：每周运动 3 次 / 睡够 7 小时 / 减脂 5kg / 戒掉夜宵 / 或者只是想找个搭子一起坚持）我会记住每个人的目标，接下来每天用一个最小行动陪大家一起把它坚持下去。需要个性化建议时私聊我就好——你的私密信息绝不会发到群里。来吧，从你开始 👇」\n   b. 在 groups/ 创建档案 <chat_id>_<群名>.md（参照 groups/_TEMPLATE.md）。\n   c. 在 __PROFILE_DIR__/memories/MEMORY.md 的“当前管理的群”追加该群登记。\n4. 严格群隔离：引导消息不得引用任何其他群或 private/ 内容。\n5. 没有新群则只输出 [SILENT]。"
-    },
-    {
-      "name": "群聊@提及巡检 - 所有群",
+      "name": "BodyOS群聊安全巡检",
       "schedule": "*/5 * * * *",
       "deliver": "local",
       "script": "feishu_group_watcher.py",
-      "skills": ["lark-im", "lark-shared"],
-      "prompt": "你是 FitCrew 健身管理专家。下面的脚本输出是各管理群中新出现的 @机器人 提及（JSONL，每行一条，含 chat_id / chat_name / message_id / sender / content_preview）。请对每一条提及：\n1. 先用 lark-im 读取该群最近几条消息，了解上下文；\n2. 再以健身管理专家身份，用 lark-im 向该群发送一条温暖、专业、简短的回复——针对提及内容回应；涉及运动/饮食/睡眠/恢复给建议，涉及疾病/用药/进食障碍等引导就医。\n严格群隔离：只引用该群公开上下文，不引用其他群或任何 private/ 私密信息；不在群里公开任何人的体重/围度/疾病等敏感数据；不比较成员。\n处理完输出一行简报（处理了几条提及、分别在哪群），不输出敏感内容。没有需处理的提及则输出 [SILENT]。"
-    },
-    {
-      "name": "个人周度私聊小结",
-      "schedule": "0 20 * * 0",
-      "deliver": "local",
-      "skills": ["lark-im", "lark-shared"],
-      "prompt": "你是 FitCrew 健身管理专家，执行“个人周度私聊小结”。目标：给所管理群的每位成员，单独私聊推送一份本周个人健康小结。绝不群发，绝不把一个人的数据放进另一个人的消息。\n\n步骤：\n1. 读取 __PROFILE_DIR__/memories/groups/ 下所有群档案，得到管理的群 chat_id 列表。\n2. 用 lark-im（必要时 --as user）列出每个群的成员 open_id，汇总去重，得到本周需要小结的成员名单（同一人在多群只发一份）。\n3. 对每位成员：\n   a. 读取其私人档案 __PROFILE_DIR__/memories/private/ou_<open_id>.md（若存在）及本周该成员在群里的公开打卡/复盘记录。\n   b. 组织一份简短、专业、私密的个人周报：本周行为完成度（看坚持，不比体重）、一个积极趋势、下周一个微目标。语气鼓励、不施压。\n   c. 若几乎没有数据，则发一条轻量问候，邀请他/她私聊设定一个健康目标。\n   d. 用 lark-im 把小结只发送给该成员本人（按 open_id 单聊发送）。\n4. 红线：每位成员的小结只发给他/她本人；严禁发到任何群；严禁在 A 的消息里提及 B 的任何信息；敏感信息只来自该成员自己的私人档案。\n5. 完成后本地输出一行简报：本周共给几位成员发送了私聊小结（不输出任何人的具体内容）。"
+      "no_agent": true
     }
   ]
 }

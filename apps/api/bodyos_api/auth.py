@@ -30,6 +30,27 @@ def require_owner(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid owner token")
 
 
+def require_internal(
+    settings: Annotated[Settings, Depends(get_settings)],
+    token: Annotated[str | None, Header(alias="X-BodyOS-Token")] = None,
+) -> None:
+    configured = settings.internal_token.get_secret_value()
+    if not configured or not token or not hmac.compare_digest(configured, token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid internal token"
+        )
+
+
+def require_model_proxy(
+    settings: Annotated[Settings, Depends(get_settings)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> None:
+    configured = settings.model_proxy_token.get_secret_value()
+    supplied = credentials.credentials if credentials else ""
+    if not configured or not supplied or not hmac.compare_digest(configured, supplied):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid proxy token")
+
+
 def hash_device_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 

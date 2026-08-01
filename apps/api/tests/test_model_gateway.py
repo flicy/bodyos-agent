@@ -1,0 +1,79 @@
+import pytest
+from bodyos_api.model_gateway import (
+    HarnessFailure,
+    HarnessResult,
+    ModelEnvelopeRejected,
+    RoutedModelGateway,
+)
+
+
+class FakeHarness:
+    def __init__(self, results: list[HarnessResult | Exception]):
+        self.results = results
+        self.prompts: list[str] = []
+
+    def run(self, prompt: str) -> HarnessResult:
+        self.prompts.append(prompt)
+        result = self.results.pop(0)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+
+def envelope() -> dict:
+    return {
+        "schema_version": "bodyos-model.v1",
+        "intent": "glucose_coaching",
+        "channel": "dm",
+        "features": {
+            "date": "2026-08-01",
+            "glucose": {"mean_mg_dl": 101.2, "coefficient_of_variation": 0.12},
+            "data_quality": {"glucose_completeness": 0.92},
+        },
+        "knowledge": [
+            {"title": "控糖革命", "page": 42, "excerpt": "先吃蔬菜和蛋白质。"}
+        ],
+        "constraints": ["not_medical_diagnosis", "cite_pages"],
+    }
+
+
+def test_primary_codex_harness_is_used_without_fallback() -> None:
+    primary = FakeHarness([HarnessResult(text="建议从进食顺序开始。", route="codex")])
+    fallback = FakeHarness([HarnessResult(text="unused", route="hermes")])
+
+    result = RoutedModelGateway(primary, fallback, primary_attempts=2).respond(envelope())
+
+    assert result.route == "codex"
+    assert len(primary.prompts) == 1
+    assert fallback.prompts == []
+
+
+def test_primary_retries_then_uses_hermes_harness() -> None:
+    primary = FakeHarness([HarnessFailure("busy"), HarnessFailure("still busy")])
+    fallback = FakeHarness([HarnessResult(text="备用回答", route="hermes")])
+
+    result = RoutedModelGateway(primary, fallback, primary_attempts=2).respond(envelope())
+
+    assert result.route == "hermes"
+    assert len(primary.prompts) == 2
+    assert len(fallback.prompts) == 1
+
+
+def test_double_failure_closes_without_fabricated_answer() -> None:
+    primary = FakeHarness([HarnessFailure("down")])
+    fallback = FakeHarness([HarnessFailure("down")])
+
+    with pytest.raises(HarnessFailure, match="all model harnesses failed"):
+        RoutedModelGateway(primary, fallback, primary_attempts=1).respond(envelope())
+
+
+def test_raw_or_identifying_fields_are_rejected_before_any_model_call() -> None:
+    primary = FakeHarness([HarnessResult(text="must not run", route="codex")])
+    fallback = FakeHarness([HarnessResult(text="must not run", route="hermes")])
+    unsafe = envelope() | {"open_id": "ou_secret", "raw_samples": [100, 110]}
+
+    with pytest.raises(ModelEnvelopeRejected):
+        RoutedModelGateway(primary, fallback).respond(unsafe)
+
+    assert primary.prompts == []
+    assert fallback.prompts == []
