@@ -10,9 +10,14 @@ def test_tencent_compose_has_owner_alpha_hardening() -> None:
         assert service in compose
     assert "read_only: true" in compose
     assert "no-new-privileges:true" in compose
+    assert "NET_BIND_SERVICE" in compose
     assert "mem_limit:" in compose
     assert "healthcheck:" in compose
     assert '"8000:8000"' not in compose
+
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+    assert "--wait --wait-timeout 120 db api caddy" in workflow
+    assert "curl --fail --silent --show-error http://127.0.0.1/healthz" in workflow
 
 
 def test_operations_bundle_has_tls_backup_restore_and_sha_rollback() -> None:

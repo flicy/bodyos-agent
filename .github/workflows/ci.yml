@@ -48,10 +48,11 @@ jobs:
           docker compose --env-file infra/tencent/runtime/.env.runtime \
             -f infra/tencent/compose.yaml build api
           docker compose --env-file infra/tencent/runtime/.env.runtime \
-            -f infra/tencent/compose.yaml up -d --wait --wait-timeout 120 db api
+            -f infra/tencent/compose.yaml up -d --wait --wait-timeout 120 db api caddy
           docker compose --env-file infra/tencent/runtime/.env.runtime \
             -f infra/tencent/compose.yaml exec -T api python -c \
             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"
+          curl --fail --silent --show-error http://127.0.0.1/healthz >/dev/null
 
   swift-core:
     runs-on: macos-15
