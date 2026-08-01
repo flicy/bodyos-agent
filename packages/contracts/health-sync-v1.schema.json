@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fitcrew.example/contracts/health-sync-v1.schema.json",
+  "title": "FitCrew Health Sync V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "batch_id",
+    "device_binding_id",
+    "consent_id",
+    "source",
+    "timezone",
+    "sent_at",
+    "samples"
+  ],
+  "properties": {
+    "schema_version": {"const": "health-sync.v1"},
+    "batch_id": {"type": "string", "format": "uuid"},
+    "device_binding_id": {"type": "string", "format": "uuid"},
+    "consent_id": {"type": "string", "format": "uuid"},
+    "source": {"type": "string", "minLength": 1, "maxLength": 200},
+    "timezone": {"type": "string", "minLength": 1, "maxLength": 64},
+    "sent_at": {"type": "string", "format": "date-time"},
+    "full_reconciliation": {"type": "boolean", "default": false},
+    "samples": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sample_id", "kind", "start_at", "end_at", "value", "unit", "source"],
+        "properties": {
+          "sample_id": {"type": "string", "format": "uuid"},
+          "kind": {
+            "enum": [
+              "blood_glucose",
+              "sleep_asleep",
+              "sleep_core",
+              "sleep_deep",
+              "sleep_rem",
+              "heart_rate_variability",
+              "resting_heart_rate",
+              "workout",
+              "active_energy",
+              "step_count",
+              "stand_hours",
+              "activity_summary"
+            ]
+          },
+          "start_at": {"type": "string", "format": "date-time"},
+          "end_at": {"type": "string", "format": "date-time"},
+          "value": {"type": "number"},
+          "unit": {"type": "string", "minLength": 1, "maxLength": 32},
+          "source": {"type": "string", "minLength": 1, "maxLength": 200},
+          "device": {"type": ["string", "null"], "maxLength": 200},
+          "metadata": {"type": "object"}
+        }
+      }
+    }
+  }
+}
