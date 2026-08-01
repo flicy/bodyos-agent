@@ -16,7 +16,7 @@ esac
 for name in glucose-revolution.pdf sleep-guide.pdf longevity-handbook.pdf; do
     test -s "$HERE/runtime/private-books/$name"
 done
-chown 1000:1000 "$HERE/runtime/private-books" "$HERE/runtime/private-books"/*.pdf
+chown 10001:10001 "$HERE/runtime/private-books" "$HERE/runtime/private-books"/*.pdf
 chmod 700 "$HERE/runtime/private-books"
 chmod 600 "$HERE/runtime/private-books"/*.pdf
 
