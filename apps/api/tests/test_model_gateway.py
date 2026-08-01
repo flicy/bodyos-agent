@@ -1,3 +1,6 @@
+import subprocess
+
+import bodyos_api.model_gateway as model_gateway_module
 import pytest
 from bodyos_api.model_gateway import (
     HarnessFailure,
@@ -46,6 +49,19 @@ def test_primary_codex_harness_is_used_without_fallback() -> None:
     assert result.route == "codex"
     assert len(primary.prompts) == 1
     assert fallback.prompts == []
+
+
+def test_hermes_cli_treats_http_error_text_as_failure_even_on_zero_exit(monkeypatch) -> None:
+    monkeypatch.setattr(
+        model_gateway_module.subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args=args[0], returncode=0, stdout='HTTP 400: {"detail":"unsupported"}', stderr=""
+        ),
+    )
+
+    with pytest.raises(HarnessFailure, match="hermes harness failed"):
+        model_gateway_module.HermesCLIHarness().run("safe prompt")
 
 
 def test_primary_retries_then_uses_hermes_harness() -> None:

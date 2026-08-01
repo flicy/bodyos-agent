@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -150,7 +151,7 @@ class HermesCLIHarness:
         self,
         command: str = "hermes",
         *,
-        model: str = "gpt-5.3-codex",
+        model: str = "gpt-5.3-codex-spark",
         timeout_seconds: int = 120,
     ):
         self._command = command
@@ -179,6 +180,11 @@ class HermesCLIHarness:
         except (OSError, subprocess.TimeoutExpired) as error:
             raise HarnessFailure("hermes harness unavailable") from error
         text = completed.stdout.strip()
-        if completed.returncode != 0 or not text:
+        if (
+            completed.returncode != 0
+            or not text
+            or re.match(r"^HTTP\s+[45]\d\d\b", text, flags=re.IGNORECASE)
+            or text.casefold().startswith(("error:", "traceback"))
+        ):
             raise HarnessFailure("hermes harness failed")
         return HarnessResult(text=text, route="hermes")

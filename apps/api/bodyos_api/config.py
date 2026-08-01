@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     public_base_url: str = "http://127.0.0.1:8000"
     codex_command: str = "codex"
     hermes_command: str = "hermes"
-    hermes_model: str = "gpt-5.3-codex"
+    hermes_model: str = "gpt-5.3-codex-spark"
     model_timeout_seconds: int = 120
     log_level: str = "INFO"
 
