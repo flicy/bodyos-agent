@@ -57,6 +57,9 @@ final class BridgeViewModel: ObservableObject {
                 deviceBindingID: pairing.deviceBindingID,
                 consentIDs: pairing.consentIDs
             )
+            if consentStore.studyStart == nil {
+                consentStore.studyStart = Date()
+            }
             statusMessage = "设备绑定成功，请授权 Apple 健康"
         } catch {
             statusMessage = "设备绑定失败：\(error.localizedDescription)"
@@ -102,6 +105,9 @@ final class BridgeViewModel: ObservableObject {
             }
             lastSync = endDate
             consentStore.lastSync = endDate
+            if fullReconciliation {
+                consentStore.lastFullReconciliation = endDate
+            }
             statusMessage = "同步成功，共处理 \(samples.count) 条样本"
             BackgroundSyncScheduler.shared.schedule()
             return true
@@ -109,5 +115,14 @@ final class BridgeViewModel: ObservableObject {
             statusMessage = "同步失败，游标未推进：\(error.localizedDescription)"
             return false
         }
+    }
+
+    var requiresFullReconciliation: Bool {
+        guard let studyStart = consentStore.studyStart else { return false }
+        return StudySchedule.requiresFullReconciliation(
+            startedAt: studyStart,
+            lastFullReconciliation: consentStore.lastFullReconciliation,
+            now: Date()
+        )
     }
 }

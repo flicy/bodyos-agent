@@ -10,6 +10,8 @@ final class ConsentStore {
     private let defaults: UserDefaults
     private let configurationKey = "fitcrew.bridge.configuration"
     private let lastSyncKey = "fitcrew.bridge.last-sync"
+    private let studyStartKey = "fitcrew.bridge.study-start"
+    private let lastFullReconciliationKey = "fitcrew.bridge.last-full-reconciliation"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -28,5 +30,15 @@ final class ConsentStore {
     var lastSync: Date? {
         get { defaults.object(forKey: lastSyncKey) as? Date }
         set { defaults.set(newValue, forKey: lastSyncKey) }
+    }
+
+    var studyStart: Date? {
+        get { defaults.object(forKey: studyStartKey) as? Date }
+        set { defaults.set(newValue, forKey: studyStartKey) }
+    }
+
+    var lastFullReconciliation: Date? {
+        get { defaults.object(forKey: lastFullReconciliationKey) as? Date }
+        set { defaults.set(newValue, forKey: lastFullReconciliationKey) }
     }
 }
