@@ -19,4 +19,5 @@ xcuserdata/
 DerivedData/
 .build/
 health-export*/
+infra/tencent/runtime/
 *.egg-info/

@@ -1,0 +1,159 @@
+name: fitcrew-bodyos
+
+x-app: &app
+  image: fitcrew-bodyos:${FITCREW_IMAGE_TAG:-local}
+  build:
+    context: ../..
+    dockerfile: infra/tencent/Dockerfile.api
+  env_file:
+    - runtime/.env.runtime
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1770
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+  networks:
+    - backend
+
+services:
+  db:
+    image: postgres:17.6-alpine3.22
+    env_file:
+      - runtime/.env.runtime
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    mem_limit: 768m
+    cpus: 0.50
+    restart: unless-stopped
+    networks:
+      - backend
+
+  api:
+    <<: *app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      BODYOS_DATABASE_URL: postgresql+psycopg://bodyos:${POSTGRES_PASSWORD}@db:5432/bodyos
+      BODYOS_MODEL_BASE_URL: http://api:8000/v1
+      HOME: /home/bodyos
+    volumes:
+      - codex_auth:/home/bodyos/.codex
+      - hermes_home:/home/bodyos/.hermes
+    healthcheck:
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+    mem_limit: 1024m
+    cpus: 1.25
+
+  worker:
+    <<: *app
+    command: ["bodyos-jobs", "loop", "--interval-seconds", "21600"]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      BODYOS_DATABASE_URL: postgresql+psycopg://bodyos:${POSTGRES_PASSWORD}@db:5432/bodyos
+      HOME: /home/bodyos
+    mem_limit: 256m
+    cpus: 0.25
+
+  gateway:
+    <<: *app
+    command: ["gateway-entrypoint"]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      BODYOS_API_BASE: http://api:8000
+      BODYOS_MODEL_BASE_URL: http://api:8000/v1
+      OPENAI_BASE_URL: http://api:8000/v1
+      OPENAI_API_KEY: ${BODYOS_MODEL_PROXY_TOKEN}
+      HOME: /home/bodyos
+    volumes:
+      - hermes_home:/home/bodyos/.hermes
+    mem_limit: 512m
+    cpus: 0.50
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    user: "1000:1000"
+    environment:
+      FITCREW_PUBLIC_HOST: ${FITCREW_PUBLIC_HOST}
+    ports:
+      - "80:8080"
+      - "443:8443"
+    volumes:
+      - ./runtime/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./runtime/acme:/srv/acme:ro
+      - ./runtime/tls:/tls:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+    mem_limit: 128m
+    cpus: 0.25
+    restart: unless-stopped
+    networks:
+      - backend
+
+  certbot:
+    image: certbot/certbot:v5.4.0
+    profiles: ["operations"]
+    env_file:
+      - runtime/.env.runtime
+    volumes:
+      - ./runtime/acme:/var/www/acme
+      - ./runtime/letsencrypt:/etc/letsencrypt
+      - ./runtime/tls:/export
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  codex_auth:
+  hermes_home:
+  caddy_data:
+  caddy_config:
+
+networks:
+  backend:
+    driver: bridge

@@ -1,0 +1,11 @@
+[Unit]
+Description=Renew FitCrew BodyOS IP certificate every 12 hours
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=12h
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

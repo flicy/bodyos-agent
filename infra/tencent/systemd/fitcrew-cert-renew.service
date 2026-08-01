@@ -1,0 +1,10 @@
+[Unit]
+Description=FitCrew BodyOS short-lived IP certificate renewal
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__WORKDIR__
+ExecStart=__WORKDIR__/renew-certificate.sh
+PrivateTmp=true
+NoNewPrivileges=true

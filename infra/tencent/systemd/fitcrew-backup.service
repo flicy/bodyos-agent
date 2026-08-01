@@ -1,0 +1,10 @@
+[Unit]
+Description=FitCrew BodyOS encrypted PostgreSQL backup
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=__WORKDIR__
+ExecStart=__WORKDIR__/backup.sh
+PrivateTmp=true
+NoNewPrivileges=true
