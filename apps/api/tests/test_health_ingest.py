@@ -7,7 +7,7 @@ from bodyos_api.health_service import (
     DeviceBindingRejected,
     HealthIngestionService,
 )
-from bodyos_api.models import Consent, DeviceBinding, HealthSample, User
+from bodyos_api.models import Consent, DailyFeature, DeviceBinding, HealthSample, User
 from bodyos_api.schemas import HealthSyncBatchIn
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -87,6 +87,16 @@ def test_ingest_encrypts_value_and_normalizes_glucose_unit(
         aad=f"{USER_ID}:{SAMPLE_ID}",
     )
     assert value["value"] == pytest.approx(100.90192)
+
+    daily = session.scalar(select(DailyFeature))
+    assert daily is not None
+    assert daily.feature_date == "2026-08-01"
+    assert b"100.90192" not in daily.payload_ciphertext
+    payload = field_cipher.decrypt_json(
+        EncryptedValue(daily.payload_nonce, daily.payload_ciphertext),
+        aad=f"feature:{USER_ID}:2026-08-01:daily.v1",
+    )
+    assert payload["glucose"]["mean_mg_dl"] == pytest.approx(100.90192)
 
 
 def test_replaying_same_batch_is_idempotent(session: Session, field_cipher: FieldCipher) -> None:

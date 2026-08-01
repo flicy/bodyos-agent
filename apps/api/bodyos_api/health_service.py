@@ -6,6 +6,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from bodyos_api.crypto import EncryptedValue, FieldCipher
+from bodyos_api.feature_store import affected_dates, materialize_daily_feature
 from bodyos_api.models import (
     Consent,
     DailyFeature,
@@ -119,6 +120,15 @@ class HealthIngestionService:
             inserted += 1
         sync_batch.sample_count = inserted
         device.last_sync_at = batch.sent_at
+        self._session.flush()
+        for feature_date in affected_dates(batch.samples, timezone=batch.timezone):
+            materialize_daily_feature(
+                self._session,
+                self._cipher,
+                fitcrew_user_id=fitcrew_user_id,
+                feature_date=feature_date,
+                timezone=batch.timezone,
+            )
         self._session.commit()
         return IngestResult(str(batch.batch_id), inserted_samples=inserted, replayed=False)
 

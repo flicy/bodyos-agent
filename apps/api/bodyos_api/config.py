@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     hermes_command: str = "hermes"
     hermes_model: str = "gpt-5.3-codex-spark"
     model_timeout_seconds: int = 120
+    study_start_date: str = ""
     log_level: str = "INFO"
 
 
