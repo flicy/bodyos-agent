@@ -66,6 +66,9 @@ def test_certificate_renewal_restarts_caddy_when_admin_api_is_disabled() -> None
 def test_model_login_uses_the_installed_hermes_auth_cli() -> None:
     login = (ROOT / "infra/tencent/model-login.sh").read_text()
 
+    assert "--cap-add CHOWN" in login
+    assert "--cap-add FOWNER" in login
+    assert "chown -R 10001:10001 /home/bodyos/.codex /home/bodyos/.hermes" in login
     assert "hermes auth add openai-codex" in login
     assert "hermes login openai-codex" not in login
 
