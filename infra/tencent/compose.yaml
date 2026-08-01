@@ -143,16 +143,10 @@ services:
     volumes:
       - ./runtime/acme:/var/www/acme
       - ./runtime/letsencrypt:/etc/letsencrypt
-      - ./runtime/tls:/export
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    cap_add:
-      # Required only when copying and replacing renewed certificates for the
-      # non-root Caddy runtime. No network-binding or broad admin caps are kept.
-      - CHOWN
-      - FOWNER
     networks:
       - backend
 

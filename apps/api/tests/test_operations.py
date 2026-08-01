@@ -39,6 +39,20 @@ def test_operations_bundle_has_tls_backup_restore_and_sha_rollback() -> None:
     assert "git checkout" not in rollback
 
 
+def test_tls_sync_uses_host_files_without_a_privileged_export_mount() -> None:
+    sync = (ROOT / "infra/tencent/sync-certificate.sh").read_text()
+    compose = (ROOT / "infra/tencent/compose.yaml").read_text()
+    certbot_service = compose.split("  certbot:\n", maxsplit=1)[1].split(
+        "\nvolumes:\n", maxsplit=1
+    )[0]
+
+    assert 'source_dir="$HERE/runtime/letsencrypt/live/$PUBLIC_HOST"' in sync
+    assert "$COMPOSE" not in sync
+    assert "/export" not in certbot_service
+    assert "CHOWN" not in certbot_service
+    assert "FOWNER" not in certbot_service
+
+
 def test_examples_do_not_contain_committable_secrets() -> None:
     example = (ROOT / "infra/tencent/env.example").read_text()
     assert "sk-" not in example
