@@ -44,7 +44,7 @@ actor HealthKitClient {
     }
 
     private var glucoseUnit: HKUnit {
-        HKUnit.gramUnit(with: .milli).unitDivided(by: .liter())
+        HKUnit.gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci))
     }
 
     private func readQuantity(

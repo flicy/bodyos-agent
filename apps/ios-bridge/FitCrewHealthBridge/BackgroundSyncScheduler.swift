@@ -16,8 +16,8 @@ final class BackgroundSyncScheduler {
             }
             Task { @MainActor in
                 processingTask.expirationHandler = {}
-                await model.sync(fullReconciliation: false)
-                processingTask.setTaskCompleted(success: true)
+                let succeeded = await model.sync(fullReconciliation: false)
+                processingTask.setTaskCompleted(success: succeeded)
             }
         }
     }

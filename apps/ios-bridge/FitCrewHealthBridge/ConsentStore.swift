@@ -3,7 +3,7 @@ import Foundation
 struct BridgeConfiguration: Codable, Equatable {
     let baseURL: URL
     let deviceBindingID: UUID
-    let consentID: UUID
+    let consentIDs: [String: UUID]
 }
 
 final class ConsentStore {

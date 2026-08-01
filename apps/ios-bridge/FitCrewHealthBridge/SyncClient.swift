@@ -48,6 +48,21 @@ final class BridgeViewModel: ObservableObject {
         return lastSync.formatted(date: .abbreviated, time: .shortened)
     }
 
+    func configure(from url: URL) {
+        do {
+            let pairing = try PairingDecoder.decode(url)
+            try KeychainStore.saveDeviceToken(pairing.deviceToken)
+            consentStore.configuration = BridgeConfiguration(
+                baseURL: pairing.baseURL,
+                deviceBindingID: pairing.deviceBindingID,
+                consentIDs: pairing.consentIDs
+            )
+            statusMessage = "设备绑定成功，请授权 Apple 健康"
+        } catch {
+            statusMessage = "设备绑定失败：\(error.localizedDescription)"
+        }
+    }
+
     func requestAuthorization() async {
         do {
             try await healthKit.requestAuthorization()
@@ -58,12 +73,13 @@ final class BridgeViewModel: ObservableObject {
         }
     }
 
-    func sync(fullReconciliation: Bool) async {
+    @discardableResult
+    func sync(fullReconciliation: Bool) async -> Bool {
         guard let configuration = consentStore.configuration,
               let token = KeychainStore.deviceToken()
         else {
             statusMessage = "请先完成设备绑定"
-            return
+            return false
         }
         let endDate = Date()
         let startDate = fullReconciliation
@@ -71,28 +87,27 @@ final class BridgeViewModel: ObservableObject {
             : (lastSync ?? Calendar.current.date(byAdding: .day, value: -1, to: endDate)!)
         do {
             let samples = try await healthKit.readSamples(since: startDate, until: endDate)
-            let batchID = BatchBuilder.stableBatchID(
-                deviceBindingID: configuration.deviceBindingID.uuidString,
-                cursor: startDate.ISO8601Format(),
-                sampleIDs: samples.map { $0.sampleID.uuidString }
-            )
-            let batch = HealthSyncBatchDTO(
-                batchID: batchID,
+            let batches = try BatchPlanner.makeBatches(
                 deviceBindingID: configuration.deviceBindingID,
-                consentID: configuration.consentID,
+                consentIDs: configuration.consentIDs,
+                cursor: startDate.ISO8601Format(),
                 source: "apple-healthkit",
                 timezone: TimeZone.current.identifier,
                 sentAt: endDate,
                 fullReconciliation: fullReconciliation,
                 samples: samples
             )
-            try await syncClient.upload(batch, to: configuration.baseURL, deviceToken: token)
+            for batch in batches {
+                try await syncClient.upload(batch, to: configuration.baseURL, deviceToken: token)
+            }
             lastSync = endDate
             consentStore.lastSync = endDate
             statusMessage = "同步成功，共处理 \(samples.count) 条样本"
             BackgroundSyncScheduler.shared.schedule()
+            return true
         } catch {
             statusMessage = "同步失败，游标未推进：\(error.localizedDescription)"
+            return false
         }
     }
 }

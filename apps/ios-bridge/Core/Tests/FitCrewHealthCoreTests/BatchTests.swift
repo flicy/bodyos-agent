@@ -47,3 +47,75 @@ import Testing
     #expect(json["device_binding_id"] != nil)
     #expect(json["feishu_open_id"] == nil)
 }
+
+@Test func plannerCreatesOneConsentBoundBatchPerHealthCategory() throws {
+    let deviceID = UUID(uuidString: "22222222-2222-4222-8222-222222222222")!
+    let glucoseConsent = UUID(uuidString: "33333333-3333-4333-8333-333333333333")!
+    let workoutConsent = UUID(uuidString: "66666666-6666-4666-8666-666666666666")!
+    let samples = [
+        HealthSampleDTO(
+            sampleID: UUID(uuidString: "55555555-5555-4555-8555-555555555555")!,
+            kind: .bloodGlucose,
+            startAt: Date(timeIntervalSince1970: 0),
+            endAt: Date(timeIntervalSince1970: 0),
+            value: 100,
+            unit: "mg/dL",
+            source: "yuwell",
+            device: nil
+        ),
+        HealthSampleDTO(
+            sampleID: UUID(uuidString: "77777777-7777-4777-8777-777777777777")!,
+            kind: .workout,
+            startAt: Date(timeIntervalSince1970: 0),
+            endAt: Date(timeIntervalSince1970: 60),
+            value: 60,
+            unit: "s",
+            source: "apple",
+            device: nil
+        ),
+    ]
+
+    let batches = try BatchPlanner.makeBatches(
+        deviceBindingID: deviceID,
+        consentIDs: [
+            HealthDataKind.bloodGlucose.rawValue: glucoseConsent,
+            HealthDataKind.workout.rawValue: workoutConsent,
+        ],
+        cursor: "cursor-1",
+        source: "apple-healthkit",
+        timezone: "Asia/Shanghai",
+        sentAt: Date(timeIntervalSince1970: 120),
+        fullReconciliation: false,
+        samples: samples
+    )
+
+    #expect(batches.count == 2)
+    #expect(batches.allSatisfy { Set($0.samples.map(\.kind)).count == 1 })
+    #expect(Set(batches.map(\.consentID)) == Set([glucoseConsent, workoutConsent]))
+}
+
+@Test func plannerFailsClosedWhenAConsentIsMissing() {
+    let sample = HealthSampleDTO(
+        sampleID: UUID(),
+        kind: .bloodGlucose,
+        startAt: Date(timeIntervalSince1970: 0),
+        endAt: Date(timeIntervalSince1970: 0),
+        value: 100,
+        unit: "mg/dL",
+        source: "yuwell",
+        device: nil
+    )
+
+    #expect(throws: BatchPlanningError.missingConsent(.bloodGlucose)) {
+        try BatchPlanner.makeBatches(
+            deviceBindingID: UUID(),
+            consentIDs: [:],
+            cursor: "cursor-1",
+            source: "apple-healthkit",
+            timezone: "Asia/Shanghai",
+            sentAt: Date(),
+            fullReconciliation: false,
+            samples: [sample]
+        )
+    }
+}

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum HealthDataKind: String, Codable, CaseIterable, Sendable {
+public enum HealthDataKind: String, Codable, CaseIterable, Hashable, Sendable {
     case bloodGlucose = "blood_glucose"
     case sleepAsleep = "sleep_asleep"
     case sleepCore = "sleep_core"

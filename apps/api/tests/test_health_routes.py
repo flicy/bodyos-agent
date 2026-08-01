@@ -1,0 +1,197 @@
+import base64
+import hashlib
+import json
+from datetime import UTC, datetime
+from urllib.parse import parse_qs, urlparse
+
+from bodyos_api.app import create_app
+from bodyos_api.config import Settings, get_settings
+from bodyos_api.crypto import FieldCipher
+from bodyos_api.db import get_session
+from bodyos_api.models import Consent, DeviceBinding, User
+from bodyos_api.runtime import get_field_cipher
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+USER_ID = "11111111-1111-4111-8111-111111111111"
+DEVICE_ID = "22222222-2222-4222-8222-222222222222"
+CONSENT_ID = "33333333-3333-4333-8333-333333333333"
+TOKEN = "owner-device-secret"
+
+
+def seed_device(session: Session) -> None:
+    session.add(User(fitcrew_user_id=USER_ID))
+    session.add(
+        DeviceBinding(
+            id=DEVICE_ID,
+            fitcrew_user_id=USER_ID,
+            device_public_id="owner-iphone",
+            token_hash=hashlib.sha256(TOKEN.encode()).hexdigest(),
+        )
+    )
+    session.add(
+        Consent(
+            id=CONSENT_ID,
+            fitcrew_user_id=USER_ID,
+            category="blood_glucose",
+            purpose="private_coaching",
+            granted=True,
+            receipt_version="v1",
+            granted_at=datetime(2026, 8, 1, tzinfo=UTC),
+        )
+    )
+    session.commit()
+
+
+def client_for(session: Session, cipher: FieldCipher) -> TestClient:
+    app = create_app()
+    app.dependency_overrides[get_session] = lambda: session
+    app.dependency_overrides[get_field_cipher] = lambda: cipher
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        owner_token="owner-admin-secret",
+        identity_pepper="test-identity-pepper",
+        public_base_url="https://bodyos.example.test",
+    )
+    return TestClient(app)
+
+
+def payload() -> dict:
+    return {
+        "batch_id": "44444444-4444-4444-8444-444444444444",
+        "device_binding_id": DEVICE_ID,
+        "consent_id": CONSENT_ID,
+        "source": "com.yuwell.anytime",
+        "timezone": "Asia/Shanghai",
+        "sent_at": "2026-08-01T12:00:00+08:00",
+        "samples": [
+            {
+                "sample_id": "55555555-5555-4555-8555-555555555555",
+                "kind": "blood_glucose",
+                "start_at": "2026-08-01T11:55:00+08:00",
+                "end_at": "2026-08-01T11:55:00+08:00",
+                "value": 5.6,
+                "unit": "mmol/L",
+                "source": "com.yuwell.anytime",
+            }
+        ],
+    }
+
+
+def test_sync_authenticates_bound_device_and_never_needs_user_id_header(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    seed_device(session)
+    response = client_for(session, field_cipher).post(
+        "/v1/health/sync",
+        headers={"Authorization": f"Bearer {TOKEN}"},
+        json=payload(),
+    )
+
+    assert response.status_code == 202
+    assert response.json() == {
+        "batch_id": "44444444-4444-4444-8444-444444444444",
+        "inserted_samples": 1,
+        "replayed": False,
+    }
+
+
+def test_sync_rejects_missing_or_wrong_device_token(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    seed_device(session)
+    client = client_for(session, field_cipher)
+
+    assert client.post("/v1/health/sync", json=payload()).status_code == 401
+    assert (
+        client.post(
+            "/v1/health/sync",
+            headers={"Authorization": "Bearer wrong"},
+            json=payload(),
+        ).status_code
+        == 401
+    )
+
+
+def test_sync_rejects_token_bound_to_a_different_device(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    seed_device(session)
+    wrong = payload()
+    wrong["device_binding_id"] = "99999999-9999-4999-8999-999999999999"
+
+    response = client_for(session, field_cipher).post(
+        "/v1/health/sync",
+        headers={"Authorization": f"Bearer {TOKEN}"},
+        json=wrong,
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "device binding mismatch"
+
+
+def test_status_returns_only_deidentified_operational_counts(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    seed_device(session)
+    client = client_for(session, field_cipher)
+    client.post(
+        "/v1/health/sync",
+        headers={"Authorization": f"Bearer {TOKEN}"},
+        json=payload(),
+    )
+
+    response = client.get(
+        "/v1/health/status", headers={"Authorization": f"Bearer {TOKEN}"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["sample_count"] == 1
+    assert response.json()["last_sync_at"] is not None
+    assert USER_ID not in response.text
+
+
+def test_owner_bootstrap_returns_one_time_pairing_and_category_consents(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    response = client_for(session, field_cipher).post(
+        "/v1/owner/bootstrap",
+        headers={"X-Owner-Token": "owner-admin-secret"},
+        json={
+            "feishu_subject": "ou_private_owner",
+            "device_public_id": "owner-iphone-15",
+            "categories": ["blood_glucose", "sleep_deep", "workout"],
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert set(body["consent_ids"]) == {"blood_glucose", "sleep_deep", "workout"}
+    assert body["pairing_url"].startswith("fitcrew-health://configure?")
+    encoded = parse_qs(urlparse(body["pairing_url"]).query)["payload"][0]
+    decoded = json.loads(base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4)))
+    assert decoded["deviceToken"] == body["device_token"]
+    assert "ou_private_owner" not in response.text
+    binding = session.get(DeviceBinding, body["device_binding_id"])
+    assert binding is not None
+    assert binding.token_hash != body["device_token"]
+
+
+def test_owner_bootstrap_fails_closed_without_correct_owner_token(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    client = client_for(session, field_cipher)
+    request = {
+        "feishu_subject": "ou_private_owner",
+        "device_public_id": "owner-iphone-15",
+        "categories": ["blood_glucose"],
+    }
+
+    assert client.post("/v1/owner/bootstrap", json=request).status_code == 401
+    assert (
+        client.post(
+            "/v1/owner/bootstrap",
+            headers={"X-Owner-Token": "wrong"},
+            json=request,
+        ).status_code
+        == 401
+    )
