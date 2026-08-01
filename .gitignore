@@ -17,5 +17,6 @@ evidence/private/
 *.xcuserstate
 xcuserdata/
 DerivedData/
+.build/
 health-export*/
 *.egg-info/
