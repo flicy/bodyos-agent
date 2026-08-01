@@ -14,6 +14,7 @@ def test_tencent_compose_has_owner_alpha_hardening() -> None:
     assert "mem_limit:" in compose
     assert "healthcheck:" in compose
     assert '"8000:8000"' not in compose
+    assert "/tmp:size=64m,mode=1777" in compose
 
     workflow = (ROOT / ".github/workflows/ci.yml").read_text()
     assert "--wait --wait-timeout 120 db api caddy" in workflow
