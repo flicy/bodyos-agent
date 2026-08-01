@@ -5,6 +5,8 @@ HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ENV_FILE="$HERE/runtime/.env.runtime"
 COMPOSE="docker compose --env-file $ENV_FILE -f $HERE/compose.yaml"
 
+chown 1000:1000 "$HERE/runtime/tls"
+chmod 700 "$HERE/runtime/tls"
 $COMPOSE --profile operations run --rm --entrypoint /bin/sh certbot -c '
 set -eu
 source_dir="/etc/letsencrypt/live/$FITCREW_PUBLIC_HOST"

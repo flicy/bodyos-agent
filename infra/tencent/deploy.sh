@@ -17,6 +17,7 @@ mkdir -p "$RUNTIME/acme" "$RUNTIME/tls" "$RUNTIME/letsencrypt" "$RUNTIME/backups
 chmod 700 "$RUNTIME" "$RUNTIME/tls" "$RUNTIME/letsencrypt" "$RUNTIME/backups" \
     "$RUNTIME/private-books" "$RUNTIME/owner"
 chmod 755 "$RUNTIME/acme"
+chown 1000:1000 "$RUNTIME/tls"
 chown 10001:10001 "$RUNTIME/private-books" "$RUNTIME/owner"
 install -m 0644 "$HERE/Caddyfile.http" "$RUNTIME/Caddyfile"
 
