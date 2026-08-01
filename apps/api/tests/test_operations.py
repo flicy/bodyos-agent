@@ -53,6 +53,15 @@ def test_tls_sync_uses_host_files_without_a_privileged_export_mount() -> None:
     assert "FOWNER" not in certbot_service
 
 
+def test_certificate_renewal_restarts_caddy_when_admin_api_is_disabled() -> None:
+    renewal = (ROOT / "infra/tencent/renew-certificate.sh").read_text()
+    caddyfile = (ROOT / "infra/tencent/Caddyfile.https").read_text()
+
+    assert "admin off" in caddyfile
+    assert "$COMPOSE restart caddy" in renewal
+    assert "caddy reload" not in renewal
+
+
 def test_examples_do_not_contain_committable_secrets() -> None:
     example = (ROOT / "infra/tencent/env.example").read_text()
     assert "sk-" not in example

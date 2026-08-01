@@ -8,5 +8,5 @@ COMPOSE="docker compose --env-file $ENV_FILE -f $HERE/compose.yaml"
 $COMPOSE --profile operations run --rm certbot renew --quiet --preferred-profile shortlived \
     --webroot --webroot-path /var/www/acme
 "$HERE/sync-certificate.sh"
-$COMPOSE exec -T caddy caddy reload --config /etc/caddy/Caddyfile
+$COMPOSE restart caddy
 echo '{"operation":"certificate_renewal","result":"complete"}'
