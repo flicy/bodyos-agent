@@ -95,6 +95,7 @@ services:
       HOME: /home/bodyos
     volumes:
       - hermes_home:/home/bodyos/.hermes
+      - gateway_state:/home/bodyos/.local
     mem_limit: 512m
     cpus: 0.50
 
@@ -154,6 +155,7 @@ volumes:
   postgres_data:
   codex_auth:
   hermes_home:
+  gateway_state:
   caddy_data:
   caddy_config:
 
