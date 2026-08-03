@@ -6,6 +6,7 @@ import uuid
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -105,14 +106,7 @@ def _extract_envelope(request: ChatCompletionRequest) -> dict:
     return envelope
 
 
-@router.post("/v1/chat/completions")
-def chat_completions(
-    request: ChatCompletionRequest,
-    _: Annotated[None, Depends(require_model_proxy)],
-    gateway: Annotated[Any, Depends(get_model_gateway)],
-) -> dict:
-    if request.stream:
-        raise HTTPException(status_code=422, detail="streaming is disabled for BodyOS")
+def _bodyos_reply(request: ChatCompletionRequest, gateway: Any) -> tuple[str, str]:
     envelope = _extract_envelope(request)
     if envelope.get("schema_version") == "bodyos-group.v1":
         try:
@@ -135,10 +129,70 @@ def chat_completions(
             raise HTTPException(status_code=503, detail="private coaching unavailable") from error
         text = result.text
         route = result.route
+    return text, route
+
+
+def _stream_chat_completion(
+    *, completion_id: str, created: int, model: str, text: str, route: str
+) -> StreamingResponse:
+    chunks = [
+        {
+            "id": completion_id,
+            "object": "chat.completion.chunk",
+            "created": created,
+            "model": model,
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {"role": "assistant", "content": text},
+                    "finish_reason": None,
+                }
+            ],
+            "bodyos_route": route,
+        },
+        {
+            "id": completion_id,
+            "object": "chat.completion.chunk",
+            "created": created,
+            "model": model,
+            "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+            "bodyos_route": route,
+        },
+    ]
+
+    def events():
+        for chunk in chunks:
+            yield f"data: {json.dumps(chunk, ensure_ascii=False, separators=(',', ':'))}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.post("/v1/chat/completions", response_model=None)
+def chat_completions(
+    request: ChatCompletionRequest,
+    _: Annotated[None, Depends(require_model_proxy)],
+    gateway: Annotated[Any, Depends(get_model_gateway)],
+) -> dict | StreamingResponse:
+    text, route = _bodyos_reply(request, gateway)
+    completion_id = f"bodyos-{uuid.uuid4()}"
+    created = int(time.time())
+    if request.stream:
+        return _stream_chat_completion(
+            completion_id=completion_id,
+            created=created,
+            model=request.model,
+            text=text,
+            route=route,
+        )
     return {
-        "id": f"bodyos-{uuid.uuid4()}",
+        "id": completion_id,
         "object": "chat.completion",
-        "created": int(time.time()),
+        "created": created,
         "model": request.model,
         "choices": [
             {

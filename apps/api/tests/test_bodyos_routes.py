@@ -135,6 +135,53 @@ def test_openai_compatible_proxy_routes_only_sanitized_dm_envelope(
     assert gateway.envelopes == [envelope]
 
 
+def test_openai_compatible_proxy_streams_only_sanitized_dm_envelope(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    gateway = RecordingGateway()
+    envelope = {
+        "schema_version": "bodyos-model.v1",
+        "intent": "sync_status",
+        "channel": "dm",
+        "features": {"status": "connected"},
+        "knowledge": [],
+        "constraints": ["no_raw_health_values"],
+    }
+    import json
+
+    response = client_for(session, field_cipher, gateway).post(
+        "/v1/chat/completions",
+        headers={"Authorization": "Bearer model-proxy-secret"},
+        json={
+            "model": "bodyos-codex",
+            "stream": True,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "BODYOS_SANITIZED_ENVELOPE=" + json.dumps(envelope),
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    events = [
+        line.removeprefix("data: ")
+        for line in response.text.splitlines()
+        if line.startswith("data: ")
+    ]
+    chunks = [json.loads(event) for event in events[:-1]]
+    assert events[-1] == "[DONE]"
+    assert chunks[0]["object"] == "chat.completion.chunk"
+    assert chunks[0]["choices"][0]["delta"] == {
+        "role": "assistant",
+        "content": "安全建议",
+    }
+    assert chunks[-1]["choices"][0]["finish_reason"] == "stop"
+    assert gateway.envelopes == [envelope]
+
+
 def test_proxy_rejects_raw_chat_even_with_valid_proxy_token(
     session: Session, field_cipher: FieldCipher
 ) -> None:
