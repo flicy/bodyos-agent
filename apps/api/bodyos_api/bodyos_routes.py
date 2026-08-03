@@ -3,6 +3,7 @@ import hmac
 import json
 import time
 import uuid
+from datetime import datetime
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -124,12 +125,56 @@ def _bodyos_reply(request: ChatCompletionRequest, gateway: Any) -> tuple[str, st
     else:
         try:
             validate_model_envelope(envelope)
+            if envelope.get("intent") == "sync_status":
+                return _sync_status_reply(envelope), "deterministic"
             result = gateway.respond(envelope)
         except (HarnessFailure, ValueError) as error:
             raise HTTPException(status_code=503, detail="private coaching unavailable") from error
         text = result.text
         route = result.route
     return text, route
+
+
+def _sync_status_reply(envelope: dict) -> str:
+    features = envelope.get("features")
+    if (
+        envelope.get("knowledge") != []
+        or envelope.get("constraints") != ["no_raw_health_values"]
+        or not isinstance(features, dict)
+        or set(features)
+        != {"connection_status", "latest_sync_at", "category_coverage"}
+    ):
+        raise HTTPException(status_code=403, detail="invalid sync status envelope")
+
+    connection_status = features.get("connection_status")
+    latest_sync_at = features.get("latest_sync_at")
+    category_coverage = features.get("category_coverage")
+    allowed_categories = {"血糖", "睡眠", "心率与恢复", "健身与活动"}
+    if connection_status not in {"connected", "disconnected"}:
+        raise HTTPException(status_code=403, detail="invalid sync status envelope")
+    if latest_sync_at is not None:
+        if not isinstance(latest_sync_at, str):
+            raise HTTPException(status_code=403, detail="invalid sync status envelope")
+        try:
+            datetime.fromisoformat(latest_sync_at)
+        except ValueError as error:
+            raise HTTPException(status_code=403, detail="invalid sync status envelope") from error
+    if (
+        not isinstance(category_coverage, list)
+        or not all(isinstance(item, str) for item in category_coverage)
+        or len(category_coverage) != len(set(category_coverage))
+        or not set(category_coverage).issubset(allowed_categories)
+    ):
+        raise HTTPException(status_code=403, detail="invalid sync status envelope")
+
+    status_text = "已连接" if connection_status == "connected" else "未连接"
+    sync_time_text = latest_sync_at or "无"
+    coverage_text = "、".join(category_coverage) or "无"
+    return (
+        f"同步状态：{status_text}\n"
+        f"最新同步时间：{sync_time_text}\n"
+        f"数据类别覆盖：{coverage_text}"
+    )
 
 
 def _stream_chat_completion(

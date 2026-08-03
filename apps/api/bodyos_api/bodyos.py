@@ -1,11 +1,12 @@
 from dataclasses import dataclass
+from datetime import UTC
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from bodyos_api.crypto import EncryptedValue, FieldCipher
 from bodyos_api.knowledge import KnowledgeService
-from bodyos_api.models import DailyFeature
+from bodyos_api.models import DailyFeature, DeviceBinding, HealthSample
 from bodyos_api.policy import BehaviorToken
 
 
@@ -23,6 +24,11 @@ class ConversationReply:
 
 def classify_intent(text: str) -> str:
     lowered = text.casefold()
+    if any(
+        term in lowered
+        for term in ("同步状态", "最新同步", "类别覆盖", "数据覆盖", "sync status")
+    ):
+        return "sync_status"
     if any(term in lowered for term in ("血糖", "葡萄糖", "餐后", "控糖", "glucose")):
         return "glucose_coaching"
     if any(term in lowered for term in ("睡眠", "睡觉", "失眠", "sleep")):
@@ -55,6 +61,27 @@ _KNOWLEDGE_QUERY = {
     "general_health_coaching": "健康 最小行动",
 }
 
+_CATEGORY_GROUPS = (
+    ("血糖", frozenset({"blood_glucose"})),
+    ("睡眠", frozenset({"sleep_asleep", "sleep_core", "sleep_deep", "sleep_rem"})),
+    (
+        "心率与恢复",
+        frozenset({"heart_rate_variability", "resting_heart_rate"}),
+    ),
+    (
+        "健身与活动",
+        frozenset(
+            {
+                "workout",
+                "active_energy",
+                "step_count",
+                "stand_hours",
+                "activity_summary",
+            }
+        ),
+    ),
+)
+
 
 class BodyOSService:
     def __init__(self, session: Session, cipher: FieldCipher, model_gateway):
@@ -75,6 +102,15 @@ class BodyOSService:
 
     def build_envelope(self, fitcrew_user_id: str, text: str) -> dict:
         intent = classify_intent(text)
+        if intent == "sync_status":
+            return {
+                "schema_version": "bodyos-model.v1",
+                "intent": intent,
+                "channel": "dm",
+                "features": self._sync_status(fitcrew_user_id),
+                "knowledge": [],
+                "constraints": ["no_raw_health_values"],
+            }
         return {
             "schema_version": "bodyos-model.v1",
             "intent": intent,
@@ -86,6 +122,33 @@ class BodyOSService:
                 "cite_pages",
                 "no_raw_health_data",
             ],
+        }
+
+    def _sync_status(self, fitcrew_user_id: str) -> dict:
+        device = self._session.scalar(
+            select(DeviceBinding)
+            .where(
+                DeviceBinding.fitcrew_user_id == fitcrew_user_id,
+                DeviceBinding.revoked_at.is_(None),
+            )
+            .order_by(DeviceBinding.last_sync_at.desc())
+            .limit(1)
+        )
+        kinds = set(
+            self._session.scalars(
+                select(HealthSample.kind)
+                .where(HealthSample.fitcrew_user_id == fitcrew_user_id)
+                .distinct()
+            ).all()
+        )
+        categories = [label for label, members in _CATEGORY_GROUPS if members & kinds]
+        last_sync_at = device.last_sync_at if device is not None else None
+        if last_sync_at is not None and last_sync_at.tzinfo is None:
+            last_sync_at = last_sync_at.replace(tzinfo=UTC)
+        return {
+            "connection_status": "connected" if device is not None else "disconnected",
+            "latest_sync_at": last_sync_at.isoformat() if last_sync_at is not None else None,
+            "category_coverage": categories,
         }
 
     def _latest_features(self, fitcrew_user_id: str) -> dict:

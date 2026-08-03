@@ -141,11 +141,11 @@ def test_openai_compatible_proxy_streams_only_sanitized_dm_envelope(
     gateway = RecordingGateway()
     envelope = {
         "schema_version": "bodyos-model.v1",
-        "intent": "sync_status",
+        "intent": "general_health_coaching",
         "channel": "dm",
-        "features": {"status": "connected"},
+        "features": {"status": "insufficient_data"},
         "knowledge": [],
-        "constraints": ["no_raw_health_values"],
+        "constraints": ["not_medical_diagnosis"],
     }
     import json
 
@@ -180,6 +180,48 @@ def test_openai_compatible_proxy_streams_only_sanitized_dm_envelope(
     }
     assert chunks[-1]["choices"][0]["finish_reason"] == "stop"
     assert gateway.envelopes == [envelope]
+
+
+def test_sync_status_proxy_is_deterministic_and_never_calls_model(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    gateway = RecordingGateway()
+    envelope = {
+        "schema_version": "bodyos-model.v1",
+        "intent": "sync_status",
+        "channel": "dm",
+        "features": {
+            "connection_status": "connected",
+            "latest_sync_at": "2026-08-03T00:43:26+00:00",
+            "category_coverage": ["血糖", "睡眠", "健身与活动"],
+        },
+        "knowledge": [],
+        "constraints": ["no_raw_health_values"],
+    }
+    import json
+
+    response = client_for(session, field_cipher, gateway).post(
+        "/v1/chat/completions",
+        headers={"Authorization": "Bearer model-proxy-secret"},
+        json={
+            "model": "bodyos-codex",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "BODYOS_SANITIZED_ENVELOPE=" + json.dumps(envelope),
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == (
+        "同步状态：已连接\n"
+        "最新同步时间：2026-08-03T00:43:26+00:00\n"
+        "数据类别覆盖：血糖、睡眠、健身与活动"
+    )
+    assert response.json()["bodyos_route"] == "deterministic"
+    assert gateway.envelopes == []
 
 
 def test_proxy_rejects_raw_chat_even_with_valid_proxy_token(

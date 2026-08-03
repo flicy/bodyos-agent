@@ -1,6 +1,8 @@
+from datetime import UTC, datetime
+
 from bodyos_api.bodyos import BodyOSService, ConversationRequest
 from bodyos_api.crypto import FieldCipher
-from bodyos_api.models import DailyFeature, User
+from bodyos_api.models import DailyFeature, DeviceBinding, HealthSample, User
 from sqlalchemy.orm import Session
 
 USER_ID = "11111111-1111-4111-8111-111111111111"
@@ -75,3 +77,52 @@ def test_dm_sends_only_deterministic_features_not_raw_question_or_identity(
     assert "Chris" not in rendered
     assert "10.2" not in rendered
     assert USER_ID not in rendered
+
+
+def test_sync_status_envelope_contains_only_connection_time_and_category_coverage(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    session.add(User(fitcrew_user_id=USER_ID))
+    session.add(
+        DeviceBinding(
+            fitcrew_user_id=USER_ID,
+            device_public_id="owner-iphone",
+            token_hash="token-hash",
+            last_sync_at=datetime(2026, 8, 3, 0, 43, 26, tzinfo=UTC),
+        )
+    )
+    for index, kind in enumerate(("blood_glucose", "sleep_deep", "step_count")):
+        session.add(
+            HealthSample(
+                fitcrew_user_id=USER_ID,
+                sync_batch_id="batch-id",
+                sample_id=f"sample-{index}",
+                kind=kind,
+                start_at=datetime(2026, 8, 3, tzinfo=UTC),
+                end_at=datetime(2026, 8, 3, tzinfo=UTC),
+                original_unit="redacted",
+                normalized_unit="redacted",
+                source="HealthKit",
+                value_nonce=b"nonce",
+                value_ciphertext=b"ciphertext",
+            )
+        )
+    session.commit()
+
+    envelope = BodyOSService(session, field_cipher, RecordingGateway()).build_envelope(
+        USER_ID,
+        "请只返回健康数据同步状态、最新同步时间和数据类别覆盖，不要返回任何原始健康数值。",
+    )
+
+    assert envelope == {
+        "schema_version": "bodyos-model.v1",
+        "intent": "sync_status",
+        "channel": "dm",
+        "features": {
+            "connection_status": "connected",
+            "latest_sync_at": "2026-08-03T00:43:26+00:00",
+            "category_coverage": ["血糖", "睡眠", "健身与活动"],
+        },
+        "knowledge": [],
+        "constraints": ["no_raw_health_values"],
+    }
