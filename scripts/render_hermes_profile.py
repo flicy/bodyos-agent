@@ -18,9 +18,10 @@ def required(name: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--app-root", type=Path, default=Path("/app"))
     parser.add_argument("--profile-dir", type=Path, required=True)
     args = parser.parse_args()
-    root = Path("/app")
+    root = args.app_root
     profile = args.profile_dir
     profile.mkdir(parents=True, exist_ok=True, mode=0o700)
 
@@ -53,6 +54,7 @@ def main() -> None:
 
     config = yaml.safe_load((root / "config/config.template.yaml").read_text())
     config["model"]["base_url"] = required("BODYOS_MODEL_BASE_URL")
+    config["hooks_auto_accept"] = True
     group_id = os.environ.get("FEISHU_ALLOWED_GROUP_ID", "").strip()
     if group_id:
         config["platforms"]["feishu"]["extra"]["group_rules"] = {

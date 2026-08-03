@@ -24,6 +24,12 @@ def test_installer_uses_hidden_secret_input_and_no_paid_model_api_prompt() -> No
     assert "bodyos_guard" in installer
 
 
+def test_gateway_image_installs_the_feishu_transport_extra() -> None:
+    dockerfile = (ROOT / "infra/tencent/Dockerfile.api").read_text()
+
+    assert '"hermes-agent[feishu]==${HERMES_VERSION}"' in dockerfile
+
+
 def test_group_watcher_has_idempotency_and_never_emits_message_preview() -> None:
     watcher = (ROOT / "scripts/feishu_group_watcher.py").read_text()
 
