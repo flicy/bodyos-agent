@@ -34,7 +34,6 @@ targets:
       path: FitCrewHealthBridge/FitCrewHealthBridge.entitlements
       properties:
         com.apple.developer.healthkit: true
-        com.apple.developer.healthkit.access: []
     dependencies:
       - package: FitCrewHealthCore
     settings:

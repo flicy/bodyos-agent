@@ -50,6 +50,10 @@ def main() -> None:
         entitlements.get("com.apple.developer.healthkit") is True,
         "generated entitlements are missing HealthKit",
     )
+    require(
+        "com.apple.developer.healthkit.access" not in entitlements,
+        "generated entitlements unexpectedly request Verifiable Health Records",
+    )
 
     print("Generated iOS configuration preserves HealthKit and pairing metadata.")
 
