@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -29,6 +29,13 @@ class OwnerBootstrapIn(BaseModel):
     feishu_subject: str = Field(min_length=3, max_length=200)
     device_public_id: str = Field(min_length=3, max_length=128)
     categories: set[HealthKind] = Field(min_length=1)
+
+
+class OwnerIdentityRebindIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    feishu_subject: str = Field(min_length=3, max_length=200)
+    device_public_id: str = Field(min_length=3, max_length=128)
 
 
 def _subject_hash(subject: str, pepper: str) -> str:
@@ -127,3 +134,69 @@ def bootstrap_owner_device(
         "device_token": device_token,
         "pairing_url": _pairing_url(pairing_payload),
     }
+
+
+@router.post("/identity/rebind")
+def rebind_owner_identity(
+    request: OwnerIdentityRebindIn,
+    _: Annotated[None, Depends(require_owner)],
+    session: Annotated[Session, Depends(get_session)],
+    cipher: Annotated[FieldCipher, Depends(get_field_cipher)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict:
+    device = session.scalar(
+        select(DeviceBinding).where(
+            DeviceBinding.device_public_id == request.device_public_id,
+            DeviceBinding.revoked_at.is_(None),
+        )
+    )
+    if device is None:
+        raise HTTPException(status_code=404, detail="active owner device not found")
+
+    now = datetime.now(UTC)
+    subject_hash = _subject_hash(
+        request.feishu_subject, settings.identity_pepper.get_secret_value()
+    )
+    current = session.scalar(
+        select(IdentityBinding).where(
+            IdentityBinding.provider == "feishu",
+            IdentityBinding.subject_hash == subject_hash,
+        )
+    )
+    if current is not None and current.fitcrew_user_id != device.fitcrew_user_id:
+        raise HTTPException(status_code=409, detail="identity is bound to another owner")
+
+    active_identities = session.scalars(
+        select(IdentityBinding).where(
+            IdentityBinding.provider == "feishu",
+            IdentityBinding.fitcrew_user_id == device.fitcrew_user_id,
+            IdentityBinding.revoked_at.is_(None),
+        )
+    ).all()
+    changed = current is None or current.revoked_at is not None or any(
+        identity.id != current.id for identity in active_identities if current is not None
+    )
+
+    for identity in active_identities:
+        if current is None or identity.id != current.id:
+            identity.revoked_at = now
+
+    if current is None:
+        current = IdentityBinding(
+            fitcrew_user_id=device.fitcrew_user_id,
+            provider="feishu",
+            subject_hash=subject_hash,
+            encrypted_subject=b"",
+            verified_at=now,
+        )
+        session.add(current)
+        session.flush()
+
+    encrypted_subject = cipher.encrypt_json(
+        {"subject": request.feishu_subject}, aad=f"identity:{current.id}"
+    )
+    current.encrypted_subject = encrypted_subject.nonce + encrypted_subject.ciphertext
+    current.verified_at = now
+    current.revoked_at = None
+    session.commit()
+    return {"changed": changed}

@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import hmac
 import json
 from datetime import UTC, datetime
 from urllib.parse import parse_qs, urlparse
@@ -8,9 +9,10 @@ from bodyos_api.app import create_app
 from bodyos_api.config import Settings, get_settings
 from bodyos_api.crypto import FieldCipher
 from bodyos_api.db import get_session
-from bodyos_api.models import Consent, DeviceBinding, User
+from bodyos_api.models import Consent, DeviceBinding, IdentityBinding, User
 from bodyos_api.runtime import get_field_cipher
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 USER_ID = "11111111-1111-4111-8111-111111111111"
@@ -195,3 +197,57 @@ def test_owner_bootstrap_fails_closed_without_correct_owner_token(
         ).status_code
         == 401
     )
+
+
+def test_owner_identity_rebind_preserves_device_token_and_health_owner(
+    session: Session, field_cipher: FieldCipher
+) -> None:
+    seed_device(session)
+    old_subject = "ou_old_bodyos_app_owner"
+    old_hash = hmac.new(
+        b"test-identity-pepper", old_subject.encode(), hashlib.sha256
+    ).hexdigest()
+    encrypted = field_cipher.encrypt_json({"subject": old_subject}, aad="identity:old-binding")
+    session.add(
+        IdentityBinding(
+            id="old-binding",
+            fitcrew_user_id=USER_ID,
+            provider="feishu",
+            subject_hash=old_hash,
+            encrypted_subject=encrypted.nonce + encrypted.ciphertext,
+            verified_at=datetime(2026, 8, 1, tzinfo=UTC),
+        )
+    )
+    session.commit()
+    original_token_hash = session.get(DeviceBinding, DEVICE_ID).token_hash
+
+    response = client_for(session, field_cipher).post(
+        "/v1/owner/identity/rebind",
+        headers={"X-Owner-Token": "owner-admin-secret"},
+        json={
+            "feishu_subject": "ou_current_bodyos_app_owner",
+            "device_public_id": "owner-iphone",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["changed"] is True
+    assert "ou_current_bodyos_app_owner" not in response.text
+    device = session.get(DeviceBinding, DEVICE_ID)
+    assert device is not None
+    assert device.fitcrew_user_id == USER_ID
+    assert device.token_hash == original_token_hash
+    old_identity = session.get(IdentityBinding, "old-binding")
+    assert old_identity is not None
+    assert old_identity.revoked_at is not None
+    current_hash = hmac.new(
+        b"test-identity-pepper",
+        b"ou_current_bodyos_app_owner",
+        hashlib.sha256,
+    ).hexdigest()
+    current = session.scalar(
+        select(IdentityBinding).where(IdentityBinding.subject_hash == current_hash)
+    )
+    assert current is not None
+    assert current.fitcrew_user_id == USER_ID
+    assert current.revoked_at is None
