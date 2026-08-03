@@ -30,11 +30,14 @@ def test_gateway_image_installs_the_feishu_transport_extra() -> None:
     assert '"hermes-agent[feishu]==${HERMES_VERSION}"' in dockerfile
 
 
-def test_gateway_has_a_dedicated_writable_runtime_state_volume() -> None:
+def test_gateway_has_a_dedicated_writable_runtime_state_tmpfs() -> None:
     compose = yaml.safe_load((ROOT / "infra/tencent/compose.yaml").read_text())
 
-    assert "gateway_state:/home/bodyos/.local" in compose["services"]["gateway"]["volumes"]
-    assert compose["volumes"]["gateway_state"] is None
+    assert (
+        "/home/bodyos/.local:size=16m,uid=10001,gid=10001,mode=0700"
+        in compose["services"]["gateway"]["tmpfs"]
+    )
+    assert "gateway_state" not in compose["volumes"]
 
 
 def test_group_watcher_has_idempotency_and_never_emits_message_preview() -> None:
