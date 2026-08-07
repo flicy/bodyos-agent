@@ -1,0 +1,40 @@
+{
+    admin off
+    auto_https off
+}
+
+:8080 {
+    handle /.well-known/acme-challenge/* {
+        root * /srv/acme
+        file_server
+    }
+    handle {
+        redir https://{env.FITCREW_PUBLIC_HOST}{uri} permanent
+    }
+}
+
+:8443 {
+    tls /tls/fullchain.pem /tls/privkey.pem
+    encode zstd gzip
+    request_body {
+        max_size 4MB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        -Server
+    }
+    reverse_proxy api:8000
+    log {
+        output stdout
+        format filter {
+            wrap json
+            fields {
+                request>uri delete
+                request>headers delete
+                response>headers delete
+            }
+        }
+    }
+}

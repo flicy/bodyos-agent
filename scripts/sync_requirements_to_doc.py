@@ -11,10 +11,10 @@ FitCrew 需求池 → 飞书需求采集文档 同步脚本
 用法：
     python3 sync_requirements_to_doc.py
 """
+import datetime
 import json
 import subprocess
 import sys
-import datetime
 
 # ---- 配置 ----
 BASE_TOKEN = "O54Ub21F9aLZ1osVV3tcgy1qnIe"          # 需求池多维表格

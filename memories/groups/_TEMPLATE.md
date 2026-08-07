@@ -1,23 +1,17 @@
-# 群档案 · <群名>
+# Group Policy Template / 群策略模板
 
-- **chat_id**: `oc_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-- **群名**: <群名>
-- **创建/加入时间**: YYYY-MM-DD
-- **主题人格**: <系统健身 / 轻量养生 / 搭子打卡 / 自定义>
+## 中文
 
-## 成员 roster（open_id ↔ 昵称）
-| 昵称 | open_id |
-|---|---|
-| <昵称> | `ou_xxxxxxxx` |
+- 运行配置中的群 ID：`<仅保存在私有 profile，不提交 Git>`
+- 白名单：默认否
+- 需要 @：是
+- 允许输出：完成今日行动、需要搭子、愿意分享、把行动变小、转私聊
+- 禁止输出：姓名、用户/群/消息 ID、聊天正文、健康数值、知识书摘、跨群信息、个性化建议
 
-## 群专属节奏
-- <如：每天 08:30 早打卡 / 20:30 晚复盘 / 周日 21:00 周报>
+## English
 
-## 群内公开目标与约定
-- （只记录成员在群里公开说出的目标，不写私密数据）
-
-## 群氛围备注
-- <群的性格、互动特点>
-
-## 隔离提醒
-- 本群只引用本群公开消息与本档案；不得引用其他群或任何 private/ 内容。
+- Group ID in runtime configuration: `<private profile only; never commit>`
+- Allowlisted: no by default
+- Mention required: yes
+- Allowed outputs: today's action completed, need a buddy, willing to share, make the action smaller, move to DM
+- Forbidden outputs: names, user/group/message IDs, chat text, health values, knowledge excerpts, cross-group information, or personalized advice

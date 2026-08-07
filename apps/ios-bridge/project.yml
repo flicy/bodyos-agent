@@ -1,0 +1,66 @@
+name: FitCrewHealthBridge
+options:
+  bundleIdPrefix: com.fitcrew
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  FitCrewHealthCore:
+    path: Core
+targets:
+  FitCrewHealthBridge:
+    type: application
+    platform: iOS
+    sources:
+      - FitCrewHealthBridge
+    info:
+      path: FitCrewHealthBridge/Info.plist
+      properties:
+        CFBundleDisplayName: FitCrew Health Bridge
+        CFBundleShortVersionString: 2.0.0
+        CFBundleVersion: "1"
+        CFBundleURLTypes:
+          - CFBundleURLName: com.fitcrew.healthbridge.pairing
+            CFBundleURLSchemes:
+              - fitcrew-health
+        LSRequiresIPhoneOS: true
+        NSHealthShareUsageDescription: FitCrew 只读取你明确授权的血糖、睡眠、恢复与活动数据，为你的 BodyOS 私聊生成私人健康洞察。
+        NSHealthUpdateUsageDescription: FitCrew 不写入健康数据；此说明仅用于系统能力声明。
+        UIBackgroundModes:
+          - processing
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.fitcrew.healthbridge.daily-sync
+        UILaunchScreen: {}
+    entitlements:
+      path: FitCrewHealthBridge/FitCrewHealthBridge.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+    dependencies:
+      - package: FitCrewHealthCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fitcrew.healthbridge
+        PRODUCT_NAME: FitCrew Health Bridge
+        SWIFT_VERSION: 6.0
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+  FitCrewHealthBridgeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - FitCrewHealthBridgeTests
+    dependencies:
+      - target: FitCrewHealthBridge
+      - package: FitCrewHealthCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fitcrew.healthbridge.tests
+        SWIFT_VERSION: 6.0
+schemes:
+  FitCrewHealthBridge:
+    build:
+      targets:
+        FitCrewHealthBridge: all
+        FitCrewHealthBridgeTests: [test]
+    test:
+      targets:
+        - FitCrewHealthBridgeTests

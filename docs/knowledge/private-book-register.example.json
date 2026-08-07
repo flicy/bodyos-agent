@@ -1,0 +1,10 @@
+{
+  "zh-CN": {
+    "说明": "私人书籍只保存来源元数据示例；PDF 与正文不会进入 Git。",
+    "字段": ["title", "author", "sha256", "page_count", "rights_status", "imported_at"]
+  },
+  "en": {
+    "description": "Private-book metadata example only; PDFs and book text never enter Git.",
+    "fields": ["title", "author", "sha256", "page_count", "rights_status", "imported_at"]
+  }
+}

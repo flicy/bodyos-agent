@@ -1,0 +1,45 @@
+FROM python:3.11.13-slim-bookworm
+
+ARG CODEX_VERSION=0.146.0
+ARG HERMES_VERSION=0.18.2
+ARG UV_VERSION=0.8.13
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PATH=/app/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    HOME=/home/bodyos
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl git nodejs npm passwd tini \
+    && npm install --global "@openai/codex@${CODEX_VERSION}" \
+    && python -m pip install --no-cache-dir "uv==${UV_VERSION}" "hermes-agent[feishu]==${HERMES_VERSION}" \
+    && npm cache clean --force \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 10001 --shell /usr/sbin/nologin bodyos
+
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+COPY apps/api ./apps/api
+COPY apps/worker ./apps/worker
+COPY alembic.ini ./
+COPY agent ./agent
+COPY memories ./memories
+COPY config ./config
+COPY cron ./cron
+COPY scripts ./scripts
+COPY integrations ./integrations
+COPY infra/tencent/api-entrypoint.sh /usr/local/bin/api-entrypoint
+COPY infra/tencent/gateway-entrypoint.sh /usr/local/bin/gateway-entrypoint
+RUN uv sync --frozen --no-dev \
+    && chmod 0555 /usr/local/bin/api-entrypoint /usr/local/bin/gateway-entrypoint \
+    && chown -R bodyos:bodyos /app /home/bodyos
+
+USER 10001:10001
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["api-entrypoint"]

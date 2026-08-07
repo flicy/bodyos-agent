@@ -1,13 +1,9 @@
-# <称呼> 私人档案
+# Optional Onboarding / 可选初始化
 
-## 初始化信息
-- 目标：<减脂/增肌/体能/睡眠/陪伴打卡>
-- 基线：<运动基础与频率>
-- 伤病与注意：<伤病/疾病/用药；无则写"无">
-- 作息：<几点睡等>
-- 偏好：<鼓励型/督促型>
-- 初始化时间：<YYYY-MM-DD>
-- 来源：对话 onboarding
+## 中文
 
-## 私密数据
-（体重/围度/伤病/睡眠等，仅在本人明确提供后记录）
+一次只问一个问题，允许跳过：当前目标、活动基线、需要留意的身体情况、作息、喜欢鼓励还是提醒。回答只送入 BodyOS 私人加密记忆；不要写原始健康数据或飞书 ID 到文件。明确说明 Apple 健康授权是可选项，撤回不影响飞书主账号。
+
+## English
+
+Ask one optional question at a time: current goal, activity baseline, relevant physical considerations, routine, and preference for encouragement or reminders. Send answers only to encrypted private BodyOS memory; never write raw health data or Feishu IDs to files. State clearly that Apple Health authorization is optional and withdrawal does not affect the primary Feishu account.

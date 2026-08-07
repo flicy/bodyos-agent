@@ -1,0 +1,4 @@
+name: bodyos-envelope
+description: Fetch a deterministic sanitized BodyOS envelope before any model call.
+events:
+  - agent:start

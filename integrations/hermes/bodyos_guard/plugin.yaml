@@ -1,0 +1,4 @@
+name: bodyos_guard
+version: "0.1.0"
+description: "Fail-closed BodyOS pre-model privacy guard"
+author: FitCrew

@@ -7,7 +7,10 @@
 用法：
   python3 add_group_rule.py <profile_dir> <chat_id> [--require-mention true|false]
 """
-import sys, os, shutil, datetime
+import datetime
+import os
+import shutil
+import sys
 
 try:
     import yaml
@@ -33,7 +36,7 @@ def main():
     platforms = cfg.setdefault("platforms", {})
     feishu = platforms.setdefault("feishu", {})
     extra = feishu.setdefault("extra", {})
-    extra.setdefault("default_group_policy", "open")
+    extra["default_group_policy"] = "allowlist"
     rules = extra.setdefault("group_rules", {}) or {}
     rules[chat_id] = {"policy": "open", "require_mention": require_mention}
     extra["group_rules"] = rules

@@ -4,9 +4,9 @@
 
 model:
   provider: custom
-  default: __MODEL__              # 例如 deepseek-v4-flash
-  base_url: __BASE_URL__          # 例如 https://token.sensenova.cn/v1
-  api_key: __API_KEY__            # 推理 API key（建议改用 ${ENV_VAR} 引用）
+  default: bodyos-codex
+  base_url: __BODYOS_MODEL_BASE_URL__
+  api_key: ${BODYOS_MODEL_PROXY_TOKEN}
 
 terminal:
   backend: local
@@ -16,11 +16,11 @@ terminal:
 platforms:
   feishu:
     extra:
-      default_group_policy: open
+      default_group_policy: allowlist
       # 每加入一个群，install/add-group 会在这里追加一条规则；也可由 Moticlaw 正常流程写入。
       group_rules: {}
         # oc_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx:
-        #   policy: open
+        #   policy: open  # Only listed chat ids reach this rule.
         #   require_mention: false   # 打卡群建议 false（主动参与）；大群可 true（仅 @ 时回应）
 
 compression:
@@ -33,6 +33,10 @@ compression:
 memory:
   memory_enabled: true
   user_profile_enabled: true
+
+plugins:
+  enabled:
+    - bodyos_guard
 
 group_sessions_per_user: true
 
